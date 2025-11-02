@@ -1,0 +1,124 @@
+# sim_face_hospitals.py
+# Run in a separate terminal:
+#   python sim_face_hospitals.py
+
+import time, random, requests
+
+API = "http://127.0.0.1:8000"
+S = requests.Session()
+
+ALL_FACE_IDS = [f"FACE_DOC_{i:03d}" for i in range(1, 33)]
+CAMERAS = ["CAM_ER_GATE", "CAM_OPD_LOBBY", "CAM_ICU_DOOR", "CAM_MAIN_ENTRANCE"]
+
+def get_facilities():
+    r = S.get(f"{API}/facilities", timeout=5)
+    r.raise_for_status()
+    facs = [f for f in r.json() if f.get("type") in ("hospital", "clinic")]
+    return facs
+
+def get_doctors_map():
+    # id -> (name, specialty)  (not strictly needed for simulator, but handy)
+    r = S.get(f"{API}/doctors", timeout=5)
+    if r.ok:
+        dlist = r.json()
+        return { d["id"]: (d["name"], d.get("specialty","")) for d in dlist }
+    return {}
+
+def face_event(fid, face_id, conf=0.93):
+    payload = {
+        "facility_id": fid,
+        "camera_id": random.choice(CAMERAS),
+        "face_id": face_id,
+        "confidence": round(conf, 3),
+        "ts": int(time.time())
+    }
+    try:
+        r = S.post(f"{API}/iot/face_event", json=payload, timeout=5)
+        print(f"[{fid}] + {face_id} conf={payload['confidence']} -> {r.status_code}")
+    except Exception as e:
+        print("POST /iot/face_event failed:", e)
+
+def checkout(fid, doctor_id):
+    try:
+        r = S.post(f"{API}/presence/checkout", json={"doctor_id": doctor_id, "facility_id": fid}, timeout=5)
+        print(f"[{fid}] - {doctor_id} checkout -> {r.status_code}")
+    except Exception as e:
+        print("POST /presence/checkout failed:", e)
+
+def chunk(lst, n):
+    k, m = divmod(len(lst), n)
+    out, start = [], 0
+    for i in range(n):
+        size = k + (1 if i < m else 0)
+        out.append(lst[start:start+size])
+        start += size
+    return out
+
+def main():
+    facs = get_facilities()
+    if not facs:
+        print("No hospitals found. Start backend first.")
+        return
+
+    # Unique pools per facility (disjoint slices)
+    chunks = chunk(ALL_FACE_IDS, len(facs))
+    pools = { fac["id"]: (ch if ch else random.sample(ALL_FACE_IDS, k=4)) for fac, ch in zip(facs, chunks) }
+
+    # Maintain current present set per facility (start with 0-2 randomly present)
+    current = {}
+    for fac in facs:
+        fid = fac["id"]
+        pool = pools[fid]
+        k0 = random.randint(0, min(2, len(pool)))
+        curr_faces = set(random.sample(pool, k=k0)) if k0 > 0 else set()
+        current[fid] = curr_faces
+        # send initial present (high conf)
+        for face in curr_faces:
+            face_event(fid, face, conf=random.uniform(0.90, 0.97))
+
+    print(f"Loaded {len(facs)} facilities. Rotating ±1/±2 every 12–18s...")
+
+    while True:
+        for fac in facs:
+            fid = fac["id"]
+            pool = pools[fid]
+            curr = current[fid]
+
+            # choose delta in {-2, -1, +1, +2}, bias towards +/-1
+            delta = random.choice([-1, 1, -2, 2, -1, 1])
+            # bound the result: 0..min(6, len(pool))
+            target = max(0, min(len(pool), len(curr) + delta, 6))
+
+            if target > len(curr):
+                # need to ADD (target - len(curr)) new faces
+                need = target - len(curr)
+                candidates = list(set(pool) - curr)
+                random.shuffle(candidates)
+                to_add = candidates[:need]
+                for face in to_add:
+                    face_event(fid, face, conf=random.uniform(0.90, 0.97))
+                    curr.add(face)
+            elif target < len(curr):
+                # need to REMOVE (len(curr) - target) faces
+                need = len(curr) - target
+                to_remove = random.sample(list(curr), k=need)
+                for face in to_remove:
+                    # checkout immediately so UI drops by 1–2
+                    # FACE_DOC_### -> DOC_### mapping is 1:1 in backend
+                    doc_id = face.replace("FACE_", "")
+                    checkout(fid, doc_id)
+                    curr.remove(face)
+
+            # tiny spacing so logs are readable
+            time.sleep(random.uniform(0.15, 0.35))
+
+        # sleep 12–18s before next small change
+        nap = random.randint(12, 18)
+        print(f"— rotation complete — sleeping {nap}s")
+        time.sleep(nap)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\nStopped.")

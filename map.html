@@ -1,213 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>CityCare — Map</title>
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-    />
-    <style>
-      :root {
-        --bg: #0b1220;
-        --card: #0f1830;
-        --ink: #e7eefc;
-        --muted: #9cc0ff;
-        --accent: #2483ff;
-        --border: #1e2a44;
-        --panel: #101a34;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--ink);
-        font: 15px/1.6 system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
-      }
-      header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        border-bottom: 2px solid var(--accent);
-        background: #0d1730;
-        position: sticky;
-        top: 0;
-        z-index: 20;
-      }
-      header h1 {
-        margin: 0;
-        font-size: 18px;
-        color: var(--accent);
-      }
-      /* --- Navbar --- */
-.nav{
-  display:flex;
-  align-items:center;
-  gap:6px;
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CityCare — Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e7eefc; --muted:#9cc0ff;
+  --accent:#2483ff; --border:#1e2a44; --panel:#101a34;
 }
-.nav a{
-  color:#cfe0ff;
-  text-decoration:none;
-  margin:0 4px;
-  padding:4px 8px;
-  border-radius:8px;
-}
-.nav a.active,
-.nav a:hover{
-  background:#142243;
-}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:18px;color:var(--accent)}
+.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
+.nav a.active,.nav a:hover{background:#142243}
 
-/* --- Login Row (force horizontal) --- */
-header .row{
-  display:flex;
-  flex-wrap:nowrap !important;
-  align-items:center;
-  gap:6px;
-}
-header input,
-header button{
-  padding:6px 8px;
-  border:1px solid #24345f;
-  border-radius:8px;
-  background:#0c1430;
-  color:var(--ink);
-  font-size:13px;
-}
-header button{
-  cursor:pointer;
-  background:var(--accent);
-  border:none;
-  color:white;
-}
+.layout{display:grid;grid-template-columns:1fr 340px;gap:12px;max-width:1400px;margin:14px auto;padding:0 12px}
+@media (max-width:1000px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+#map{height:78vh;border-radius:10px}
+.side h3{margin:0 0 8px;color:var(--accent)}
+label{font-size:12px;color:var(--muted)}
+input,select,button{width:100%;padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
+button{cursor:pointer;background:var(--accent);border:none}
+.small{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center}
+.badge{padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:#142243;color:#bcd0ff;font-size:12px}
 
-      .layout {
-        display: grid;
-        grid-template-columns: 1fr 340px;
-        gap: 12px;
-        max-width: 1400px;
-        margin: 14px auto;
-        padding: 0 12px;
-      }
-      @media (max-width: 1000px) {
-        .layout {
-          grid-template-columns: 1fr;
-        }
-      }
-      .card {
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 12px;
-      }
-      #map {
-        height: 78vh;
-        border-radius: 10px;
-      }
-      .side h3 {
-        margin: 0 0 8px;
-        color: var(--accent);
-      }
-      label {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      input,
-      select,
-      button {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #24345f;
-        border-radius: 10px;
-        background: #0c1430;
-        color: var(--ink);
-      }
-      button {
-        cursor: pointer;
-        background: var(--accent);
-        border: none;
-      }
-      .small {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .row {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-      }
-      .badge {
-        padding: 2px 8px;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        background: #142243;
-        color: #bcd0ff;
-        font-size: 12px;
-      }
+/* legend outside map */
+.legend-wrap{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+.legend{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.legend .dot{width:10px;height:10px;border-radius:50%}
 
-      /* legend outside map */
-      .legend-wrap {
-        margin-top: 8px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-      }
-      .legend {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        padding: 6px 8px;
-      }
-      .legend .dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-      }
+/* inline add form for label/type */
+#addForm{
+  position:absolute; z-index:4000; background:var(--panel);
+  border:1px solid var(--border); border-radius:10px; padding:10px; width:280px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4); display:none;
+}
+#addForm .row2{display:grid;grid-template-columns:1fr;gap:8px}
+#addForm .btns{display:flex;gap:8px;justify-content:flex-end}
+.btn-secondary{background:#24345f}
+.notice{margin-top:6px;color:#9cc0ff;font-size:12px}
 
-      /* inline add form for label/type */
-      #addForm {
-        position: absolute;
-        z-index: 4000;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 10px;
-        padding: 10px;
-        width: 260px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-        display: none;
-      }
-      #addForm .row2 {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 8px;
-      }
-      #addForm .btns {
-        display: flex;
-        gap: 8px;
-        justify-content: flex-end;
-      }
-      .btn-secondary {
-        background: #24345f;
-      }
-      .notice {
-        margin-top: 6px;
-        color: #9cc0ff;
-        font-size: 12px;
-      }
-    </style>
-  </head>
-  <body>
-    <header>
+/* tiny numeric badge next to markers */
+.badge-div { background:#15264d;border:1px solid #2a3e73;color:#cfe0ff;
+  padding:1px 6px;border-radius:10px;font-size:12px;line-height:18px;
+  box-shadow:0 2px 8px rgba(0,0,0,.35);
+}
+</style>
+</head>
+<body>
+<header>
   <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav">
-    <a class="active" href="index.html">Home</a>
-    <a href="map.html">Map</a>
+  <nav class="nav" id="topnav">
+    <a href="index.html">Home</a>
+    <a class="active" href="map.html">Map</a>
     <a href="patients.html">Patients</a>
     <a href="schedule.html">Scheduling</a>
     <a href="sharing.html">Data Sharing</a>
@@ -216,403 +66,450 @@ header button{
   </nav>
 </header>
 
-    <div class="layout">
-      <div class="card">
-        <div id="map"></div>
+<div class="layout">
+  <div class="card">
+    <div id="map"></div>
 
-        <!-- legend outside map -->
-        <div class="legend-wrap">
-          <div class="legend">
-            <span class="dot" style="background: #4ade80"></span
-            ><span>Hospital</span>
-          </div>
-          <div class="legend">
-            <span class="dot" style="background: #60a5fa"></span
-            ><span>Ambulance</span>
-          </div>
-          <div class="legend">
-            <span class="dot" style="background: #f97316"></span
-            ><span>Incident</span>
-          </div>
-          <div class="legend">
-            <span class="dot" style="background: #eab308"></span
-            ><span>Custom</span>
-          </div>
-          <span class="badge" id="countBadge">0 markers</span>
-        </div>
-        <div class="small">
-          Tip: Click the map to add a marker — you’ll be asked for a
-          <b>type</b> and a <b>label</b>. Click a marker to delete it.
-          <b>Deleting hospitals/ambulances requires a Doctor ID.</b>
-        </div>
-      </div>
+    <div class="legend-wrap">
+      <div class="legend"><span class="dot" style="background:#4ade80"></span><span>Hospital</span></div>
+      <div class="legend"><span class="dot" style="background:#60a5fa"></span><span>Ambulance</span></div>
+      <div class="legend"><span class="dot" style="background:#f97316"></span><span>Incident</span></div>
+      <div class="legend"><span class="dot" style="background:#eab308"></span><span>Custom</span></div>
+      <span class="badge" id="countBadge">0 markers</span>
+    </div>
+    <div class="small">Tip: Click the map to add a marker — you’ll be asked for a <b>type</b> and a <b>label</b>. Click a marker to delete it. <b>Deleting hospitals/ambulances requires a Doctor ID.</b></div>
+  </div>
 
-      <!-- Right panel -->
-      <div class="card side">
-        <h3>Search & Place</h3>
-        <div class="row">
-          <input
-            id="addr"
-            placeholder="Search an address (e.g., Rajwada Palace, Indore)"
-          />
-          <button id="btnFind" style="width: auto">Find</button>
-        </div>
-        <div id="suggestions" class="small" style="margin-top: 8px"></div>
-        <hr
-          style="
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 12px 0;
-          "
-        />
-        <h3>Quick Add</h3>
-        <div class="small" style="margin-bottom: 6px">Add by coordinates</div>
-        <div class="row">
-          <input id="lat" placeholder="Lat" />
-          <input id="lng" placeholder="Lng" />
-          <button id="btnAdd" style="width: auto">Add</button>
-        </div>
-        <div class="small notice">
-          You will be asked for a label after placing.
-        </div>
-        <hr
-          style="
-            border: none;
-            border-top: 1px solid var(--border);
-            margin: 12px 0;
-          "
-        />
-        <div class="row">
-          <button id="btnClearAll" class="btn-secondary">
-            Clear ALL (Doctor ID needed for protected)
-          </button>
-          <button id="btnReload" class="btn-secondary">Reload</button>
-        </div>
-      </div>
+  <!-- Right panel -->
+  <div class="card side">
+    <h3>Search & Place</h3>
+    <div class="row">
+      <input id="addr" placeholder="Search an address (e.g., Rajwada Palace, Indore)" />
+      <button id="btnFind" style="width:auto">Find</button>
+    </div>
+    <div id="suggestions" class="small" style="margin-top:8px"></div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <h3>Quick Add</h3>
+    <div class="small" style="margin-bottom:6px">Add by coordinates</div>
+    <div class="row">
+      <input id="lat" placeholder="Lat" />
+      <input id="lng" placeholder="Lng" />
+      <button id="btnAdd" style="width:auto">Add</button>
+    </div>
+    <div class="small notice">You will be asked for a label after placing.</div>
+
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+
+    <!-- Hospital details box -->
+    <h3>Hospital Details</h3>
+    <div id="hospDetails" class="small" style="min-height:80px; border:1px solid var(--border); border-radius:8px; padding:10px;">
+      <em>Select a hospital marker to see description and doctors present.</em>
     </div>
 
-    <!-- inline add form -->
-    <div id="addForm">
-      <div class="row2">
-        <div>
-          <label>Type</label>
-          <select id="mkType">
-            <option value="custom">Custom</option>
-            <option value="hospital">Hospital</option>
-            <option value="ambulance">Ambulance</option>
-            <option value="incident">Incident</option>
-          </select>
-        </div>
-        <div>
-          <label>Label</label>
-          <input id="mkLabel" placeholder="e.g., Apollo Hospital — ER Gate" />
-        </div>
-        <div class="btns">
-          <button id="mkCancel" class="btn-secondary" type="button">
-            Cancel
-          </button>
-          <button id="mkSave" type="button">Save</button>
-        </div>
-      </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row">
+      <button id="btnClearAll" class="btn-secondary">Clear ALL (Doctor ID needed for protected)</button>
+      <button id="btnReload" class="btn-secondary">Reload</button>
+    </div>
+  </div>
+</div>
+
+<!-- inline add form -->
+<div id="addForm">
+  <div class="row2">
+    <div>
+      <label>Type</label>
+      <select id="mkType">
+        <option value="custom">Custom</option>
+        <option value="hospital">Hospital</option>
+        <option value="ambulance">Ambulance</option>
+        <option value="incident">Incident</option>
+      </select>
+    </div>
+    <div>
+      <label>Label</label>
+      <input id="mkLabel" placeholder="e.g., Apollo Hospital — ER Gate" />
     </div>
 
-    <footer
-      class="small"
-      style="text-align: center; margin: 18px 0; color: #9cc0ff"
-    >
-      © 2025 CityCare Project — Map Module
-    </footer>
+    <!-- when type==hospital, link to a backend facility -->
+    <div id="facilityLinkWrap" style="display:none">
+      <label>Link to facility (for live doctor counts)</label>
+      <select id="facilitySelect"></select>
+      <div class="small" style="color:#9cc0ff">Optional. If you skip this, the count badge will be 0.</div>
+    </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-      /* Navbar active */
-      (function () {
-        const file = location.pathname.split("/").pop() || "map.html";
-        document.querySelectorAll("#topnav a").forEach((a) => {
-          if (a.dataset?.page === file) a.classList.add("active");
-          else a.classList.remove("active");
-        });
-      })();
+    <div class="btns">
+      <button id="mkCancel" class="btn-secondary" type="button">Cancel</button>
+      <button id="mkSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
 
-      /* Storage */
-      const LS_KEY = "citycare_markers_v3";
-      const loadStore = () => JSON.parse(localStorage.getItem(LS_KEY) || "[]");
-      const saveStore = (arr) =>
-        localStorage.setItem(LS_KEY, JSON.stringify(arr));
-      let store = loadStore();
+<footer class="small" style="text-align:center;margin:18px 0;color:#9cc0ff">© 2025 CityCare Project — Map Module</footer>
 
-      /* Map */
-      const map = L.map("map", {
-        center: [22.7206, 75.8577],
-        zoom: 12,
-        worldCopyJump: true,
-      });
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-        attribution: "&copy; OpenStreetMap",
-      }).addTo(map);
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* Navbar active */
+(function(){
+  const file = location.pathname.split("/").pop() || "map.html";
+  document.querySelectorAll('#topnav a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')===file);
+  });
+})();
 
-      /* Small colored icons */
-      function mkIcon(color) {
-        const svg = encodeURIComponent(
-          `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="28" viewBox="0 0 24 36"><path fill="${color}" d="M12 0C5.4 0 0 5.4 0 12c0 8 12 24 12 24s12-16 12-24C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="5" fill="#0b1220"/></svg>`
-        );
-        return L.icon({
-          iconUrl: `data:image/svg+xml,${svg}`,
-          iconSize: [18, 28],
-          iconAnchor: [9, 28],
-          popupAnchor: [0, -26],
-        });
-      }
-      const ICONS = {
-        hospital: mkIcon("#4ade80"),
-        ambulance: mkIcon("#60a5fa"),
-        incident: mkIcon("#f97316"),
-        custom: mkIcon("#eab308"),
-      };
+/* Backend API */
+const API = "http://127.0.0.1:8000";
 
-      /* Helpers */
-      const badge = document.getElementById("countBadge");
-      function isProtectedType(t) {
-        return (
-          (t || "").toLowerCase() === "hospital" ||
-          (t || "").toLowerCase() === "ambulance"
-        );
-      }
-      function askDoctorIdOrDeny() {
-        const id = prompt(
-          "Doctor ID required to remove this marker (format: DOC_...)"
-        );
-        if (!id) return null;
-        if (!/^doc[_-]?/i.test(id)) {
-          alert("Invalid Doctor ID. Must start with 'DOC'");
-          return null;
-        }
-        return id.trim();
-      }
+/* Local storage */
+const LS_KEY = "citycare_markers_v4";
+const loadStore = ()=> JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+const saveStore = (arr)=> localStorage.setItem(LS_KEY, JSON.stringify(arr));
+let store = loadStore();
 
-      /* Render markers */
-      let leafletMarkers = new Map(); // id -> L.marker
-      function renderAll() {
-        leafletMarkers.forEach((m) => map.removeLayer(m));
-        leafletMarkers.clear();
-        store.forEach((rec) => {
-          const m = L.marker([rec.lat, rec.lng], {
-            icon: ICONS[rec.type] || ICONS.custom,
-          })
-            .addTo(map)
-            .bindTooltip(rec.label || rec.type || "marker", {
-              permanent: false,
-              direction: "top",
-              opacity: 0.9,
-            });
-          const html = `
-      <b>${rec.label || "(no label)"}</b><br>
-      <span class="small">${(rec.type || "").toUpperCase()}</span><br>
+/* Map */
+const map = L.map('map', { center:[22.7206, 75.8577], zoom:12, worldCopyJump:true });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(map);
+
+/* Icons */
+function mkIcon(color){
+  const svg = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="28" viewBox="0 0 24 36"><path fill="${color}" d="M12 0C5.4 0 0 5.4 0 12c0 8 12 24 12 24s12-16 12-24C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="5" fill="#0b1220"/></svg>`);
+  return L.icon({iconUrl:`data:image/svg+xml,${svg}`, iconSize:[18,28], iconAnchor:[9,28], popupAnchor:[0,-26]});
+}
+const ICONS = {
+  hospital: mkIcon('#4ade80'),
+  ambulance: mkIcon('#60a5fa'),
+  incident: mkIcon('#f97316'),
+  custom: mkIcon('#eab308')
+};
+function mkBadge(count){
+  return L.divIcon({html:`<div class="badge-div">${count}</div>`, className:'', iconSize:[24,18], iconAnchor:[-6,18]});
+}
+const HOSP_ICON = mkIcon('#4ade80');
+
+/* Presence caches */
+let hospIndex = {};              // backend facilities: id -> { marker, badge, data }
+let localHospBadges = new Map(); // local hospital markers: id -> L.marker (badge)
+let backendFacilities = [];      // list from /facilities
+let presence = {};               // facility_id -> [{id,name,specialty},...]
+
+/* Helpers */
+const badgeEl = document.getElementById('countBadge');
+const hospDetails = document.getElementById('hospDetails');
+function isProtectedType(t){ return ['hospital','ambulance'].includes((t||'').toLowerCase()); }
+function askDoctorIdOrDeny(){
+  const id = prompt("Doctor ID required to remove this marker (format: DOC_...)");
+  if(!id) return null;
+  if(!/^doc[_-]?/i.test(id)) { alert("Invalid Doctor ID. Must start with 'DOC'"); return null; }
+  return id.trim();
+}
+
+/* Fetchers */
+async function fetchFacilities(){ const r=await fetch(`${API}/facilities`); return r.json(); }
+async function fetchPresence(){ const r=await fetch(`${API}/presence`); return r.json(); }
+
+/* Local markers render */
+let leafletMarkers = new Map(); // id -> L.marker
+function renderAll(){
+  leafletMarkers.forEach(m => map.removeLayer(m));
+  leafletMarkers.clear();
+  localHospBadges.forEach(b=>map.removeLayer(b));
+  localHospBadges.clear();
+
+  store.forEach(rec=>{
+    const m = L.marker([rec.lat,rec.lng], {icon: ICONS[rec.type]||ICONS.custom})
+      .addTo(map)
+      .bindTooltip(rec.label || rec.type || 'marker', {permanent:false, direction:'top', opacity:0.9});
+
+    const html = `
+      <b>${rec.label || '(no label)'}</b><br>
+      <span class="small">${(rec.type||'').toUpperCase()}</span><br>
+      ${rec.type==='hospital' && rec.facility_id ? `<div class="small">Linked: ${rec.facility_id}</div>`:''}
       <button data-id="${rec.id}" class="delBtn">Delete</button>`;
-          m.bindPopup(html);
-          m.on("popupopen", (e) => {
-            const btn = e.popup._contentNode.querySelector(".delBtn");
-            if (btn) {
-              btn.onclick = () => {
-                // Enforce Doctor ID for protected types
-                if (isProtectedType(rec.type)) {
-                  const ok = askDoctorIdOrDeny();
-                  if (!ok) return;
-                }
-                if (confirm("Delete this marker?")) {
-                  removeById(rec.id);
-                  e.popup.remove();
-                }
-              };
-            }
-          });
-          leafletMarkers.set(rec.id, m);
-        });
-        badge.textContent = `${store.length} marker${
-          store.length !== 1 ? "s" : ""
-        }`;
+    m.bindPopup(html);
+
+    m.on('click', ()=>{
+      if(rec.type==='hospital'){
+        updateRightPanelForHospital(rec);
       }
-      function removeById(id) {
-        const idx = store.findIndex((r) => r.id === id);
-        if (idx >= 0) {
-          const m = leafletMarkers.get(id);
-          if (m) {
-            map.removeLayer(m);
-            leafletMarkers.delete(id);
+    });
+
+    m.on('popupopen', (e)=>{
+      const btn = e.popup._contentNode.querySelector('.delBtn');
+      if(btn){
+        btn.onclick = ()=>{
+          if(isProtectedType(rec.type)){
+            const ok = askDoctorIdOrDeny();
+            if(!ok) return;
           }
-          store.splice(idx, 1);
-          saveStore(store);
-          renderAll();
-        }
-      }
-
-      /* Add form (asks Type + Label every time) */
-      const addForm = document.getElementById("addForm");
-      const mkType = document.getElementById("mkType");
-      const mkLabel = document.getElementById("mkLabel");
-      const mkSave = document.getElementById("mkSave");
-      const mkCancel = document.getElementById("mkCancel");
-      let pendingLatLng = null;
-
-      function openAddForm(latlng, screenPoint) {
-        pendingLatLng = latlng;
-        mkType.value = "custom";
-        mkLabel.value = "";
-        addForm.style.left = screenPoint.x + 12 + "px";
-        addForm.style.top = screenPoint.y + 12 + "px";
-        addForm.style.display = "block";
-        mkLabel.focus();
-      }
-      function closeAddForm() {
-        addForm.style.display = "none";
-        pendingLatLng = null;
-      }
-      mkCancel.onclick = closeAddForm;
-
-      mkSave.onclick = () => {
-        if (!pendingLatLng) return;
-        const type = mkType.value || "custom";
-        const label = mkLabel.value.trim();
-        if (!label) {
-          alert("Please provide a label for this marker.");
-          return;
-        }
-        // Optionally require auth for adding protected types too (kept simple: only for delete)
-        const rec = {
-          id: "MK_" + Math.random().toString(36).slice(2, 10),
-          lat: pendingLatLng.lat,
-          lng: pendingLatLng.lng,
-          type,
-          label,
+          if(confirm('Delete this marker?')){
+            removeById(rec.id);
+            e.popup.remove();
+          }
         };
-        store.push(rec);
-        saveStore(store);
-        closeAddForm();
-        renderAll();
+      }
+    });
+
+    leafletMarkers.set(rec.id, m);
+
+    // badge for linked local hospitals
+    if(rec.type==='hospital' && rec.facility_id){
+      const count = (presence[rec.facility_id]||[]).length;
+      const b = L.marker([rec.lat, rec.lng], {icon: mkBadge(count), interactive:false}).addTo(map);
+      localHospBadges.set(rec.id, b);
+    }
+  });
+
+  badgeEl.textContent = `${store.length} marker${store.length!==1?'s':''}`;
+}
+
+function removeById(id){
+  const idx = store.findIndex(r=>r.id===id);
+  if(idx>=0){
+    const m = leafletMarkers.get(id);
+    if(m){ map.removeLayer(m); leafletMarkers.delete(id); }
+    const b = localHospBadges.get(id);
+    if(b){ map.removeLayer(b); localHospBadges.delete(id); }
+    store.splice(idx,1);
+    saveStore(store);
+    renderAll();
+  }
+}
+
+/* Inline add form */
+const addForm = document.getElementById('addForm');
+const mkType = document.getElementById('mkType');
+const mkLabel = document.getElementById('mkLabel');
+const mkSave = document.getElementById('mkSave');
+const mkCancel = document.getElementById('mkCancel');
+const facilityWrap = document.getElementById('facilityLinkWrap');
+const facilitySelect = document.getElementById('facilitySelect');
+let pendingLatLng = null;
+
+mkType.onchange = ()=> {
+  facilityWrap.style.display = (mkType.value==='hospital') ? 'block' : 'none';
+};
+
+function populateFacilitySelect(){
+  facilitySelect.innerHTML = '<option value="">(None)</option>';
+  backendFacilities
+    .filter(f=>f.type==='hospital' || f.type==='clinic')
+    .forEach(f=>{
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = `${f.name} (${f.id})`;
+      facilitySelect.appendChild(opt);
+    });
+}
+
+function openAddForm(latlng, screenPoint){
+  pendingLatLng = latlng;
+  mkType.value = 'custom';
+  mkLabel.value = '';
+  facilityWrap.style.display = 'none';
+  addForm.style.left = (screenPoint.x + 12) + 'px';
+  addForm.style.top  = (screenPoint.y + 12) + 'px';
+  addForm.style.display = 'block';
+  mkLabel.focus();
+}
+function closeAddForm(){ addForm.style.display = 'none'; pendingLatLng = null; }
+mkCancel.onclick = closeAddForm;
+
+mkSave.onclick = ()=>{
+  if(!pendingLatLng) return;
+  const type = mkType.value || 'custom';
+  const label = mkLabel.value.trim();
+  if(!label){ alert('Please provide a label for this marker.'); return; }
+  const rec = {
+    id: 'MK_' + Math.random().toString(36).slice(2,10),
+    lat: pendingLatLng.lat, lng: pendingLatLng.lng,
+    type, label
+  };
+  if(type==='hospital'){
+    const fid = (facilitySelect.value||'').trim();
+    if(fid) rec.facility_id = fid;
+  }
+  store.push(rec);
+  saveStore(store);
+  closeAddForm();
+  renderAll();
+};
+
+/* Map interactions */
+map.on('click', (e)=>{
+  const pt = map.latLngToContainerPoint(e.latlng);
+  openAddForm(e.latlng, pt);
+});
+map.on('mousedown', (e)=>{
+  if(addForm.style.display==='block'){
+    const rect = addForm.getBoundingClientRect();
+    const x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+    if(!(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom)){
+      closeAddForm();
+    }
+  }
+});
+
+/* Address search (Nominatim) */
+document.getElementById('btnFind').onclick = async ()=>{
+  const q = document.getElementById('addr').value.trim();
+  const sugg = document.getElementById('suggestions');
+  if(!q){ alert('Enter an address/place'); return; }
+  sugg.innerHTML = 'Searching…';
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`;
+  try{
+    const r = await fetch(url, {headers:{'Accept':'application/json'}});
+    const data = await r.json();
+    if(!data.length){ sugg.innerHTML = '<span class="small">No results.</span>'; return; }
+    sugg.innerHTML = '';
+    data.forEach(item=>{
+      const d = document.createElement('div');
+      d.className = 'small';
+      d.style.cssText = 'padding:6px 8px;border:1px solid var(--border);border-radius:8px;margin-top:6px;cursor:pointer';
+      d.textContent = item.display_name;
+      d.onclick = ()=>{
+        const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+        map.setView([lat,lon], 16);
+        const pt = map.latLngToContainerPoint({lat:lat, lng:lon});
+        openAddForm({lat:lat, lng:lon}, pt);
       };
+      sugg.appendChild(d);
+    });
+  }catch(e){
+    sugg.innerHTML = '<span class="small">Lookup failed.</span>';
+  }
+};
 
-      /* Map click -> open type+label form */
-      map.on("click", (e) => {
-        const pt = map.latLngToContainerPoint(e.latlng);
-        openAddForm(e.latlng, pt);
-      });
+/* Quick Add by coordinates */
+document.getElementById('btnAdd').onclick = ()=>{
+  const la = parseFloat(document.getElementById('lat').value);
+  const ln = parseFloat(document.getElementById('lng').value);
+  if(Number.isNaN(la) || Number.isNaN(ln)){ alert('Enter valid numbers'); return; }
+  map.setView([la,ln], 16);
+  const pt = map.latLngToContainerPoint({lat:la, lng:ln});
+  openAddForm({lat:la, lng:ln}, pt);
+};
 
-      /* Clicking elsewhere closes inline form */
-      map.on("mousedown", (e) => {
-        if (addForm.style.display === "block") {
-          const rect = addForm.getBoundingClientRect();
-          const x = e.originalEvent.clientX,
-            y = e.originalEvent.clientY;
-          if (
-            !(
-              x >= rect.left &&
-              x <= rect.right &&
-              y >= rect.top &&
-              y <= rect.bottom
-            )
-          ) {
-            closeAddForm();
-          }
-        }
-      });
+/* Clear all */
+document.getElementById('btnClearAll').onclick = ()=>{
+  if(!store.length){ alert('No markers to clear.'); return; }
+  const hasProtected = store.some(r=>isProtectedType(r.type));
+  let docOk = true;
+  if(hasProtected){
+    const id = askDoctorIdOrDeny();
+    if(!id) { docOk = false; }
+  }
+  if(!confirm('Proceed with clearing?')){ return; }
+  if(docOk){
+    store = [];
+  }else{
+    store = store.filter(r=>isProtectedType(r.type));
+    alert('Cleared non-protected markers only. Hospital/Ambulance kept.');
+  }
+  saveStore(store);
+  renderAll();
+};
+document.getElementById('btnReload').onclick = ()=>{ location.reload(); };
 
-      /* Address search (Nominatim) */
-      const btnFind = document.getElementById("btnFind");
-      const addr = document.getElementById("addr");
-      const sugg = document.getElementById("suggestions");
+/* ============= Backend facilities with live presence (badges) ============= */
+let hospitalLayer = L.layerGroup().addTo(map);
+let badgeLayer    = L.layerGroup().addTo(map);
 
-      btnFind.onclick = async () => {
-        const q = addr.value.trim();
-        if (!q) {
-          alert("Enter an address/place");
-          return;
-        }
-        sugg.innerHTML = "Searching…";
-        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          q
-        )}&limit=5`;
-        try {
-          const r = await fetch(url, {
-            headers: { Accept: "application/json" },
-          });
-          const data = await r.json();
-          if (!data.length) {
-            sugg.innerHTML = '<span class="small">No results.</span>';
-            return;
-          }
-          sugg.innerHTML = "";
-          data.forEach((item) => {
-            const d = document.createElement("div");
-            d.className = "small";
-            d.style.padding = "6px 8px";
-            d.style.border = "1px solid var(--border)";
-            d.style.borderRadius = "8px";
-            d.style.marginTop = "6px";
-            d.style.cursor = "pointer";
-            d.textContent = item.display_name;
-            d.onclick = () => {
-              const lat = parseFloat(item.lat),
-                lon = parseFloat(item.lon);
-              map.setView([lat, lon], 16);
-              const pt = map.latLngToContainerPoint({ lat: lat, lng: lon });
-              openAddForm({ lat: lat, lng: lon }, pt);
-            };
-            sugg.appendChild(d);
-          });
-        } catch (e) {
-          sugg.innerHTML = '<span class="small">Lookup failed.</span>';
-        }
-      };
+async function drawBackendHospitals(){
+  backendFacilities = await fetchFacilities();
+  hospitalLayer.clearLayers();
+  badgeLayer.clearLayers();
+  hospIndex = {};
 
-      /* Quick Add by coordinates (also asks label) */
-      document.getElementById("btnAdd").onclick = () => {
-        const la = parseFloat(document.getElementById("lat").value);
-        const ln = parseFloat(document.getElementById("lng").value);
-        if (Number.isNaN(la) || Number.isNaN(ln)) {
-          alert("Enter valid numbers");
-          return;
-        }
-        map.setView([la, ln], 16);
-        const pt = map.latLngToContainerPoint({ lat: la, lng: ln });
-        openAddForm({ lat: la, lng: ln }, pt);
-      };
+  backendFacilities.forEach(f=>{
+    if(f.type !== 'hospital' && f.type !== 'clinic') return;
 
-      /* Clear all with Doctor-ID protection */
-      document.getElementById("btnClearAll").onclick = () => {
-        if (!store.length) {
-          alert("No markers to clear.");
-          return;
-        }
-        const hasProtected = store.some((r) => isProtectedType(r.type));
-        let docOk = true;
-        if (hasProtected) {
-          const id = askDoctorIdOrDeny();
-          if (!id) {
-            docOk = false;
-          }
-        }
-        if (!confirm("Proceed with clearing?")) {
-          return;
-        }
-        if (docOk) {
-          // clear everything
-          store = [];
-        } else {
-          // clear only non-protected
-          store = store.filter((r) => isProtectedType(r.type));
-          alert("Cleared non-protected markers only. Hospital/Ambulance kept.");
-        }
-        saveStore(store);
-        renderAll();
-      };
+    const m = L.marker([f.lat, f.lon], {icon:HOSP_ICON})
+      .addTo(hospitalLayer)
+      .bindTooltip(f.name, {direction:'top', opacity:0.9});
 
-      document.getElementById("btnReload").onclick = () => {
-        location.reload();
-      };
+    const popupHtml = `
+      <b>${f.name}</b><br>
+      <span style="font-size:12px;color:#9cc0ff">${f.zone||''} • Beds: ${f.beds||0} • ${f.contact||''}</span><br>
+      <div style="margin-top:6px;font-size:12px">${f.description||''}</div>
+      <div class="small" style="margin-top:6px"><i>Doctors present updates live.</i></div>
+    `;
+    m.bindPopup(popupHtml);
 
-      /* Initial draw */
-      renderAll();
-    </script>
-  </body>
+    m.on('click', ()=>{ updateRightPanelForFacility(f.id); });
+
+    const b = L.marker([f.lat, f.lon], { icon: mkBadge(0), interactive:false }).addTo(badgeLayer);
+    hospIndex[f.id] = { marker:m, badge:b, data:f };
+  });
+
+  populateFacilitySelect();
+}
+
+async function refreshPresenceAndBadges(){
+  presence = await fetchPresence(); // { fid: [ {id,name,specialty}, ... ] }
+
+  // update backend badges + popups (with specialties)
+  Object.entries(hospIndex).forEach(([fid, obj])=>{
+    const here = presence[fid] || [];
+    obj.badge.setIcon( mkBadge(here.length) );
+
+    const names = here.length
+      ? here.map(x => `${x.name}${x.specialty ? ' ('+x.specialty+')' : ''}`).join(', ')
+      : '<i>None</i>';
+
+    const f = obj.data;
+    const html = `
+      <b>${f.name}</b><br>
+      <span style="font-size:12px;color:#9cc0ff">${f.zone||''} • Beds: ${f.beds||0} • ${f.contact||''}</span><br>
+      <div style="margin-top:6px;font-size:12px">${f.description||''}</div>
+      <div style="margin-top:6px;font-size:12px"><b>Doctors present:</b> ${names}</div>
+    `;
+    obj.marker.setPopupContent(html);
+  });
+
+  // update badges for your linked local hospitals
+  localHospBadges.forEach((b, mkId)=>{
+    const rec = store.find(r=>r.id===mkId);
+    if(!rec || rec.type!=='hospital' || !rec.facility_id) return;
+    const count = (presence[rec.facility_id]||[]).length;
+    b.setIcon( mkBadge(count) );
+  });
+}
+
+/* Right panel renderers (with specialties) */
+function updateRightPanelForFacility(fid){
+  const f = backendFacilities.find(x=>x.id===fid);
+  const here = presence[fid] || [];
+  const names = here.length
+    ? here.map(x => `${x.name}${x.specialty ? ' ('+x.specialty+')' : ''}`).join(', ')
+    : '<i>None</i>';
+  hospDetails.innerHTML = `
+    <div style="font-size:14px"><b>${f?.name || fid}</b></div>
+    <div style="margin-top:6px">${f?.description || '<i>No description</i>'}</div>
+    <div style="margin-top:6px"><b>Doctors present:</b> ${names}</div>
+  `;
+}
+
+function updateRightPanelForHospital(rec){
+  if(rec.facility_id){
+    updateRightPanelForFacility(rec.facility_id);
+  }else{
+    hospDetails.innerHTML = `
+      <div style="font-size:14px"><b>${rec.label||'Hospital'}</b></div>
+      <div style="margin-top:6px"><i>No backend link — counts unavailable.</i></div>
+      <div style="margin-top:6px"><b>Doctors present:</b> <i>0</i></div>
+    `;
+  }
+}
+
+/* Boot */
+(async ()=>{
+  await drawBackendHospitals();
+  presence = await fetchPresence();
+  renderAll(); // draw your local markers + any linked badges
+  // refresh presence every 5s (backend/simulator govern the actual change cadence)
+  setInterval(async()=>{ await refreshPresenceAndBadges(); }, 5000);
+})();
+</script>
+</body>
 </html>
