@@ -1,0 +1,47 @@
+[
+  {
+    "id": "MKR_B6CC3E",
+    "type": "hospital",
+    "name": "hospital",
+    "lat": 22.720533152403117,
+    "lon": 75.85638999938966,
+    "created_at": 1762048925502,
+    "updated_at": 1762048925502
+  },
+  {
+    "id": "MKR_B11D66",
+    "type": "hospital",
+    "name": "hospital",
+    "lat": 22.71958290430242,
+    "lon": 75.8481502532959,
+    "created_at": 1762048927565,
+    "updated_at": 1762048927565
+  },
+  {
+    "id": "MKR_596AE0",
+    "type": "hospital",
+    "name": "hospital",
+    "lat": 22.719147371717582,
+    "lon": 75.8485794067383,
+    "created_at": 1762048929899,
+    "updated_at": 1762048929899
+  },
+  {
+    "id": "MKR_7ED6A8",
+    "type": "hospital",
+    "name": "hospital",
+    "lat": 22.712050168884783,
+    "lon": 75.86917877197267,
+    "created_at": 1762048933459,
+    "updated_at": 1762048933459
+  },
+  {
+    "id": "MKR_30A4A9",
+    "type": "hospital",
+    "name": "hospital",
+    "lat": 22.71965238737137,
+    "lon": 75.89012145996095,
+    "created_at": 1762048934350,
+    "updated_at": 1762048934350
+  }
+]

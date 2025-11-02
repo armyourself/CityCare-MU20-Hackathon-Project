@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CityCare — Patient Monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>🏥 CityCare — Indore</h1>
+  <nav class="nav" id="topnav">
+    <a href="index.html">Home</a>
+    <a href="map.html">Map</a>
+    <a href="patients.html">Patients</a>
+    <a href="schedule.html">Scheduling</a>
+    <a href="sharing.html">Data Sharing</a>
+    <a href="alerts.html">Alerts</a>
+    <a class="active" href="monitor.html">Monitor</a>
+  </nav>
+</header>
+
+<div class="main">
+  <!-- Doctor login -->
+  <div class="card">
+    <h2>Doctor Login</h2>
+    <div class="row">
+      <input id="doc_id" placeholder="Doctor ID (e.g. DOC_001)" style="min-width:220px">
+      <input id="doc_pin" type="password" placeholder="PIN (e.g. 2222)" style="min-width:150px">
+      <button id="login_btn">Login</button>
+      <span id="login_status" class="badge">Not logged in</span>
+    </div>
+  </div>
+
+  <!-- Select patient -->
+  <div id="patient_select_card" class="card" style="display:none">
+    <h2>Select Patient to Monitor</h2>
+    <div class="row">
+      <input id="patient_id" placeholder="Patient ID (e.g. PAT_001)">
+      <button id="load_btn">Load Patient</button>
+      <span id="patient_status" class="badge">—</span>
+    </div>
+  </div>
+
+  <!-- Monitoring view -->
+  <div id="monitor_card" class="card" style="display:none">
+    <h2>Real-Time Monitoring</h2>
+    <div class="row">
+      <label>Select Stat</label>
+      <select id="stat_select">
+        <option value="heart_rate">Heart Rate</option>
+        <option value="o2">O₂ Saturation</option>
+        <option value="temperature">Body Temperature</option>
+      </select>
+    </div>
+    <div id="monitor_display" style="margin-top:20px;font-size:26px;font-weight:bold;text-align:center;">
+      Waiting for sensor data...
+    </div>
+  </div>
+</div>
+
+<footer class="small" style="text-align:center;margin:24px 0;color:#9cc0ff">
+  © 2025 CityCare Project — Monitoring Module
+</footer>
+
+<script src="common.js"></script>
+<script>
+const API = "http://127.0.0.1:8000"; // your backend
+
+const qs = (id)=>document.getElementById(id);
+
+let session = { doctor:null, patient:null, stat:'heart_rate' };
+
+// doctor login
+qs('login_btn').onclick = async ()=>{
+  const id = qs('doc_id').value.trim();
+  const pin = qs('doc_pin').value.trim();
+  if(!id || !pin){ alert("Enter doctor ID and PIN"); return; }
+  const ok = (id.startsWith('DOC_') && pin === '2222'); // demo rule
+  if(ok){
+    session.doctor = id;
+    qs('login_status').textContent = `Logged in as ${id}`;
+    qs('patient_select_card').style.display = '';
+  } else {
+    alert("Invalid login");
+  }
+};
+
+// load patient for monitoring
+qs('load_btn').onclick = async ()=>{
+  const pid = qs('patient_id').value.trim();
+  if(!pid){ alert("Enter patient ID"); return; }
+  session.patient = pid;
+  qs('patient_status').textContent = `Monitoring ${pid}`;
+  qs('monitor_card').style.display = '';
+  startMonitoring();
+};
+
+// stat selection
+qs('stat_select').onchange = ()=>{
+  session.stat = qs('stat_select').value;
+  startMonitoring();
+};
+
+// mock IoT sensor connection
+function startMonitoring(){
+  const display = qs('monitor_display');
+  clearInterval(window.sensorLoop);
+  window.sensorLoop = setInterval(async ()=>{
+    // simulate getting data from an IoT device API
+    // In real deployment, fetch from a microcontroller endpoint:
+    // const r = await fetch(`http://sensor.local/api/${session.patient}/${session.stat}`);
+    // const data = await r.json();
+
+    let value;
+    if(session.stat === 'heart_rate') value = Math.floor(70 + Math.random()*30) + ' bpm';
+    if(session.stat === 'o2') value = (95 + Math.random()*4).toFixed(1) + '%';
+    if(session.stat === 'temperature') value = (36 + Math.random()*1.5).toFixed(1) + ' °C';
+
+    display.textContent = `${session.stat.replace('_',' ').toUpperCase()}: ${value}`;
+  }, 2000);
+}
+</script>
+</body>
+</html>

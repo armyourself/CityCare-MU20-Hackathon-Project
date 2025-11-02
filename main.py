@@ -266,3 +266,113 @@ def health():
         "alerts": len(alerts),
         "facilities": len(facilities)
     }
+@app.get("/sensor/{patient_id}/{stat}")
+def get_sensor_data(patient_id: str, stat: str):
+    # Here you’d actually fetch from IoT hardware, e.g. via serial, MQTT, or REST
+    simulated = {
+        "heart_rate": random.randint(60, 100),
+        "o2": round(random.uniform(95, 99), 1),
+        "temperature": round(random.uniform(36.0, 37.5), 1)
+    }
+    return {"patient": patient_id, "stat": stat, "value": simulated.get(stat, None)}
+# ============================================================
+# 📡 IOT SENSOR MONITORING (Simulated + SQLite Logging)
+# ============================================================
+
+import sqlite3, random, time
+from fastapi.middleware.cors import CORSMiddleware
+
+# Allow frontend access
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"]
+)
+
+DB_PATH = "sensors.db"
+
+# ----------------- Initialize Database -----------------
+def init_sensor_db():
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute('''CREATE TABLE IF NOT EXISTS readings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        patient_id TEXT,
+        stat TEXT,
+        value REAL,
+        timestamp REAL
+    )''')
+    conn.commit()
+    conn.close()
+
+init_sensor_db()
+
+# ----------------- Helper Functions -----------------
+def generate_vitals():
+    """Simulate realistic IoT sensor readings."""
+    return {
+        "heart_rate": random.randint(60, 110),
+        "o2": round(random.uniform(94.0, 99.5), 1),
+        "temperature": round(random.uniform(36.0, 37.8), 1)
+    }
+
+def save_reading(patient_id, stat, value):
+    """Save each simulated reading to the database."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("INSERT INTO readings (patient_id, stat, value, timestamp) VALUES (?,?,?,?)",
+              (patient_id, stat, value, time.time()))
+    conn.commit()
+    conn.close()
+
+# ----------------- API Endpoints -----------------
+@app.get("/sensor/{patient_id}/{stat}")
+def get_sensor_data(patient_id: str, stat: str):
+    """Simulate & store a single stat reading for a patient."""
+    vitals = generate_vitals()
+    value = vitals.get(stat)
+    if value is None:
+        return {"error": "Invalid stat", "available": list(vitals.keys())}
+
+    save_reading(patient_id, stat, value)
+    return {
+        "patient": patient_id,
+        "stat": stat,
+        "value": value,
+        "unit": "bpm" if stat=="heart_rate" else "%" if stat=="o2" else "°C",
+        "timestamp": time.time()
+    }
+
+@app.get("/sensor/{patient_id}")
+def get_all_stats(patient_id: str):
+    """Return all simulated stats for a patient."""
+    vitals = generate_vitals()
+    for stat, val in vitals.items():
+        save_reading(patient_id, stat, val)
+    return {"patient": patient_id, "vitals": vitals, "timestamp": time.time()}
+
+@app.get("/sensor/{patient_id}/history/{stat}")
+def get_history(patient_id: str, stat: str, limit: int = 30):
+    """Get last few readings for chart plotting."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("""SELECT value, timestamp FROM readings 
+                 WHERE patient_id=? AND stat=? 
+                 ORDER BY timestamp DESC LIMIT ?""",
+              (patient_id, stat, limit))
+    rows = c.fetchall()
+    conn.close()
+    rows.reverse()
+    return {"patient": patient_id, "stat": stat, "history": rows}
+
+@app.get("/patients")
+def get_patients():
+    """List distinct patients who have sensor readings."""
+    conn = sqlite3.connect(DB_PATH)
+    c = conn.cursor()
+    c.execute("SELECT DISTINCT patient_id FROM readings ORDER BY patient_id")
+    patients = [r[0] for r in c.fetchall()]
+    conn.close()
+    return {"patients": patients}
+# ============================================================
