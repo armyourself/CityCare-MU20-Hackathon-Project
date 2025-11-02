@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CityCare </title>
+<style>
+:root{
+  --border:#1e2a44; --bg:#0b1220; --card:#0f1830;
+  --ink:#e7eefc; --muted:#9cc0ff; --accent:#2483ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
+
+/* Header + Nav */
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:18px;color:var(--accent)}
+.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
+.nav a.active,.nav a:hover{background:#142243}
+
+/* Page layout */
+.main{max-width:1200px;margin:16px auto;padding:0 16px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
+.grid{display:grid;gap:14px}
+.grid.cols-3{grid-template-columns:repeat(3,1fr)}
+@media (max-width:900px){.grid.cols-3{grid-template-columns:1fr}}
+
+/* Buttons, inputs used on home cards (minimal) */
+.btn{cursor:pointer;background:var(--accent);color:#fff;border:none;border-radius:10px;padding:8px 12px}
+.btn.secondary{background:#24345f}
+input,select{padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
+.small{font-size:12px;color:var(--muted)}
+footer.note{font-size:12px;color:#9cc0ff;text-align:center;margin:24px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>CityCare</h1>
+  <nav class="nav" id="topnav">
+    <a class="active" href="index.html" data-page="index.html">Home</a>
+    <a href="map.html" data-page="map.html">Map</a>
+    <a href="patients.html" data-page="patients.html">Patients</a>
+    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
+    <a href="sharing.html" data-page="sharing.html">Data Sharing</a>
+    <a href="alerts.html" data-page="alerts.html">Alerts</a>
+  </nav>
+</header>
+
+<div class="main">
+  <!-- ====== OVERVIEW CARD (kept simple) ====== -->
+  <div class="card">
+    <h2 style="color:var(--accent);margin:6px 0">Connected Hospital Ecosystem — Indore</h2>
+    <p class="small">CityCare links hospitals, clinics, ambulances, pharmacies, and patients on one live system for smoother, faster, patient-centric care.</p>
+    <ul style="margin-top:8px">
+      <li> Live city map: hospitals, ambulances, incidents</li>
+      <li> Smart scheduling for doctors & patients</li>
+      <li> Consent-based data sharing (role-based access)</li>
+      <li>Alerts & reminders for meds, reports, emergencies</li>
+
+    </ul>
+  </div>
+
+  <!-- ====== QUICK LINKS / SHORTCUTS (cards under navbar) ====== -->
+  <div class="grid cols-3">
+    <a class="card" href="map.html" style="text-decoration:none;color:inherit">
+      <h3 style="margin:6px 0;color:var(--accent)">City Map</h3>
+      <p class="small">Add & view hospitals, ambulances, and incidents on Indore’s map.</p>
+      <button class="btn" style="margin-top:8px">Open Map</button>
+    </a>
+    <a class="card" href="patients.html" style="text-decoration:none;color:inherit">
+      <h3 style="margin:6px 0;color:var(--accent)">Patient Dashboard</h3>
+      <p class="small">Patients can fill their details & manage sharing permissions.</p>
+      <button class="btn" style="margin-top:8px">Open Patients</button>
+    </a>
+    <a class="card" href="schedule.html" style="text-decoration:none;color:inherit">
+      <h3 style="margin:6px 0;color:var(--accent)">Scheduling</h3>
+      <p class="small">Patients book visits; doctors view their appointments.</p>
+      <button class="btn" style="margin-top:8px">Open Scheduling</button>
+    </a>
+  </div>
+
+  <div class="grid cols-3">
+    <a class="card" href="sharing.html" style="text-decoration:none;color:inherit">
+      <h3 style="margin:6px 0;color:var(--accent)">Data Sharing</h3>
+      <p class="small">Consent-based access for doctors/pharmacists using patient user IDs.</p>
+      <button class="btn" style="margin-top:8px">Open Sharing</button>
+    </a>
+    <a class="card" href="alerts.html" style="text-decoration:none;color:inherit">
+      <h3 style="margin:6px 0;color:var(--accent)">Alerts</h3>
+      <p class="small">Set reminders for meds, lab reports, or emergency drills.</p>
+      <button class="btn" style="margin-top:8px">Open Alerts</button>
+    </a>
+
+  </div>
+</div>
+
+<!-- ==================== CityCare: Minimal Patient-ID Creator (ADD-ON) ==================== -->
+<div id="citycare-register" style="max-width:960px;margin:50px auto;">
+  <style>
+    /* Scoped styles for the add-on only */
+    #citycare-register .card{background:#0f1830;border:1px solid #1e2a44;border-radius:12px;padding:20px;}
+    #citycare-register h2,#citycare-register h3{color:#2483ff;margin:0 0 8px;}
+    #citycare-register p.hint{color:#9cc0ff;font-size:13px;margin:0 0 14px;}
+    #citycare-register .grid{display:grid;gap:12px;grid-template-columns:repeat(12,1fr);align-items:start;}
+    #citycare-register label{font-size:12px;color:#9cc0ff;display:block;margin-bottom:6px;}
+    #citycare-register input{width:100%;padding:10px;border-radius:8px;border:1px solid #24345f;background:#0c1430;color:#e7eefc;}
+    #citycare-register .btn{cursor:pointer;padding:10px 14px;border:none;border-radius:8px;background:#2483ff;color:#fff;text-decoration:none;}
+    #citycare-register .btn.secondary{background:#24345f;color:#e7eefc;}
+    #citycare-register .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;}
+    #citycare-register .col-6{grid-column:span 6;} .col-4{grid-column:span 4;} .col-8{grid-column:span 8;} .col-12{grid-column:span 12;}
+    @media (max-width:900px){#citycare-register .col-6,#citycare-register .col-4,#citycare-register .col-8{grid-column:span 12;}}
+    #citycare-register .row{display:grid;gap:8px;align-items:center;grid-template-columns:1fr 1fr 1fr auto;background:#101a34;border-radius:8px;padding:10px;margin:6px 0;}
+    #citycare-register .meta{font-size:12px;color:#9cc0ff;}
+    #citycare-register .badge{background:#142243;color:#9cc0ff;padding:4px 10px;border-radius:10px;font-size:12px;}
+    #citycare-register hr{border:none;border-top:1px solid #1e2a44;margin:18px 0;}
+  </style>
+
+  <div class="card">
+    <h2>Doctor — Create Patient ID</h2>
+    <p class="hint">Generate a <b>Patient User ID</b> and <b>PIN</b> only. Saved locally and synced to backend.</p>
+
+    <div class="grid">
+      <div class="col-8">
+        <label for="reg_pat_id">Patient User ID</label>
+        <div style="display:flex;gap:8px;">
+          <input id="reg_pat_id" placeholder="PAT_XXXXXX">
+          <button id="reg_btn_gen" class="btn secondary" type="button">Generate</button>
+        </div>
+      </div>
+
+      <div class="col-4">
+        <label for="reg_pat_pin">Set PIN (4–8 digits)</label>
+        <input id="reg_pat_pin" placeholder="e.g., 1234">
+      </div>
+
+      <div class="col-6">
+        <label for="reg_assigned_doc">Assign Doctor ID (optional)</label>
+        <input id="reg_assigned_doc" placeholder="DOC_001">
+      </div>
+
+      <div class="col-6">
+        <label for="reg_facility_id">Facility ID (optional)</label>
+        <input id="reg_facility_id" placeholder="IND_HSP_001">
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="reg_btn_clear" class="btn secondary" type="button">Clear</button>
+      <button id="reg_btn_save" class="btn" type="button">Save Patient</button>
+    </div>
+
+    <hr>
+
+    <h3>Registered Patient IDs</h3>
+    <div class="grid">
+      <div class="col-8">
+        <input id="reg_q" placeholder="Search by ID / doctor / facility…">
+      </div>
+      <div class="col-4" style="display:flex;gap:8px;align-items:center;">
+        <a id="reg_btn_export" class="btn secondary" href="javascript:void(0)">Export CSV</a>
+        <span id="reg_count_badge" class="badge">0</span>
+      </div>
+    </div>
+
+    <div id="reg_tbl" style="margin-top:8px;"></div>
+  </div>
+
+  <script>
+    // Navbar active highlight (keeps your nav behavior)
+    (function(){
+      const file = location.pathname.split("/").pop() || "index.html";
+      document.querySelectorAll('#topnav a').forEach(a=>{
+        if (a.dataset?.page === file) a.classList.add('active'); else a.classList.remove('active');
+      });
+    })();
+
+    // Backend (best-effort sync). Change host/port if needed.
+    const REG_API = "http://127.0.0.1:8000";
+    // Local storage key
+    const REG_LS  = "citycare_patients_min";
+
+    // State helpers
+    const reg_load = () => JSON.parse(localStorage.getItem(REG_LS) || "[]");
+    const reg_save = (arr) => localStorage.setItem(REG_LS, JSON.stringify(arr));
+    let reg_patients = reg_load();
+
+    // Elements
+    const E = (id) => document.getElementById(id);
+    const patId = E("reg_pat_id"), patPin = E("reg_pat_pin"),
+          docId = E("reg_assigned_doc"), facId = E("reg_facility_id"),
+          qBox = E("reg_q"), tbl = E("reg_tbl"), badge = E("reg_count_badge");
+
+    // Utils
+    const reg_genId = () => 'PAT_' + Math.random().toString(36).slice(2,8).toUpperCase();
+    const reg_mask = (s) => "•".repeat((s||"").length);
+
+    function reg_collect(){
+      const uid = patId.value.trim();
+      const pin = patPin.value.trim();
+      const doc = docId.value.trim();
+      const fac = facId.value.trim();
+      if(!uid){ alert("Enter or generate Patient ID"); return null; }
+      if(!/^[0-9]{4,8}$/.test(pin)){ alert("PIN must be 4–8 digits"); return null; }
+      return { user_id: uid, pin: pin, assigned_doctor_id: doc || null, facility_id: fac || null, created_at: Date.now() };
+    }
+
+    // Actions
+    E("reg_btn_gen").onclick   = (e)=>{ e.preventDefault(); patId.value = reg_genId(); };
+    E("reg_btn_clear").onclick = ()=>{ [patId, patPin, docId, facId].forEach(i => i.value = ""); };
+
+    E("reg_btn_save").onclick = async ()=>{
+      const rec = reg_collect(); if(!rec) return;
+
+      // upsert locally
+      const i = reg_patients.findIndex(p => p.user_id === rec.user_id);
+      if(i >= 0){ if(!confirm("Patient ID exists. Overwrite?")) return; reg_patients[i] = rec; }
+      else { reg_patients.unshift(rec); }
+      reg_save(reg_patients);
+      reg_render();
+      E("reg_btn_clear").click();
+
+      // best-effort backend sync (placeholders for required fields)
+      try{
+        await fetch(`${REG_API}/patients/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: rec.user_id, pin: rec.pin,
+            name: "—", age: 0, gender: "Other",
+            height_cm: null, weight_kg: null, bmi: null,
+            phone: null, email: null, emergency_contact: null,
+            conditions: null, allergies: null, meds: null,
+            assigned_doctor_id: rec.assigned_doctor_id, facility_id: rec.facility_id,
+            consent: "none", share_with: [], created_at: rec.created_at
+          })
+        });
+      }catch(e){ console.warn("Backend offline; saved locally only."); }
+
+      alert("Patient ID created.");
+    };
+
+    // Render table
+    function reg_render(){
+      const qv = (qBox.value || "").toLowerCase().trim();
+      tbl.innerHTML = "";
+      const arr = qv ? reg_patients.filter(p =>
+        (p.user_id||"").toLowerCase().includes(qv) ||
+        (p.assigned_doctor_id||"").toLowerCase().includes(qv) ||
+        (p.facility_id||"").toLowerCase().includes(qv)
+      ) : reg_patients;
+
+      badge.textContent = `${arr.length} ID${arr.length !== 1 ? 's' : ''}`;
+
+      arr.forEach(p=>{
+        const row = document.createElement("div");
+        row.className = "row";
+        row.innerHTML = `
+          <div><b>${p.user_id}</b></div>
+          <div>${reg_mask(p.pin)}</div>
+          <div>${p.assigned_doctor_id || '—'}<div class="meta">${p.facility_id || '—'}</div></div>
+          <div style="display:flex;gap:6px;justify-content:flex-end;">
+            <button class="btn secondary" type="button" onclick="reg_edit('${p.user_id}')">Edit</button>
+            <button class="btn" type="button" onclick="reg_del('${p.user_id}')">Del</button>
+          </div>`;
+        tbl.appendChild(row);
+      });
+    }
+
+    qBox.oninput = reg_render;
+
+    // Edit/Delete (global to work from inline handlers)
+    window.reg_edit = (uid)=>{
+      const p = reg_patients.find(x => x.user_id === uid); if(!p) return;
+      patId.value = p.user_id;
+      patPin.value = p.pin || "";
+      docId.value  = p.assigned_doctor_id || "";
+      facId.value  = p.facility_id || "";
+      document.getElementById("citycare-register").scrollIntoView({behavior:"smooth"});
+    };
+
+    window.reg_del = (uid)=>{
+      const i = reg_patients.findIndex(x => x.user_id === uid);
+      if(i < 0) return;
+      if(!confirm("Delete " + reg_patients[i].user_id + "?")) return;
+      reg_patients.splice(i, 1);
+      reg_save(reg_patients);
+      reg_render();
+    };
+
+    // First paint
+    reg_render();
+  </script>
+</div>
+<!-- ==================== END CityCare Add-On ==================== -->
+
+<footer class="note">© 2025 CityCare Project — Connected Healthcare for Indore</footer>
+</body>
+</html>

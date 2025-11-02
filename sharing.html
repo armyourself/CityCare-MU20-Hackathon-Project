@@ -1,0 +1,293 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CityCare </title>
+<style>
+  header {
+  transition: transform 0.3s ease;
+  transform: translateY(-100%);
+}
+
+header.visible {
+  transform: translateY(0);
+}
+
+:root {
+  --border: #d0d8e8;
+  --bg: #f9fbff;
+  --card: #ffffff;
+  --ink: #0a0a0a;
+  --muted: #5c6e8c;
+  --accent: #0059d6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--accent);
+  background: #eaf0ff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--accent);
+}
+
+.nav a {
+  color: #003c99;
+  text-decoration: none;
+  margin: 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.nav a.active,
+.nav a:hover {
+  background: #dce7ff;
+}
+
+.main {
+  max-width: 1100px;
+  margin: 16px auto;
+  padding: 0 16px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+input,
+button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #b4c3e0;
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+}
+
+button {
+  cursor: pointer;
+  background: var(--accent);
+  border: none;
+  color: #ffffff;
+}
+
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin: 10px 0;
+}
+
+.field {
+  flex: 1 1 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+h2 {
+  color: var(--accent);
+  margin: 6px 0;
+}
+
+.small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.card hr {
+  border: 0;
+  border-top: 1px solid #ccd6ec;
+  margin: 10px 0;
+}
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #eef3ff;
+  color: #003c99;
+  font-size: 12px;
+}
+</style>
+
+</head><body>
+<header>
+  <h1>🏥 CityCare — Indore</h1>
+  <nav class="nav">
+    <a href="index.html">Home</a>
+    <a href="map.html">Map</a>
+    <a href="patients.html">Patients</a>
+    <a href="schedule.html">Scheduling</a>
+    <a class="active" href="sharing.html">Data Sharing</a>
+    <a href="alerts.html">Alerts</a>
+  </nav>
+</header>
+
+<div class="main">
+
+  <!-- Viewer login (doctor/pharmacist/clinic/hospital) -->
+  <div class="card">
+    <h2>Viewer Login</h2>
+    <div class="row">
+      <div class="field"><label for="v_user">Your User ID</label><input id="v_user" placeholder="USR_DOC_001"></div>
+      <div class="field" style="max-width:220px"><label for="v_pin">PIN</label><input id="v_pin" type="password" placeholder="****"></div>
+      <div class="field" style="max-width:160px;align-self:flex-end"><button id="btn_vlog">Login</button></div>
+    </div>
+    <div id="v_status" class="small"></div>
+    <div class="small" style="margin-top:6px">Demo PINs: doctor=2222, pharmacist=4444, nurse=3333, admin=5555</div>
+  </div>
+
+  <!-- Look up a patient -->
+  <div class="card" id="lookup_card" style="display:none">
+    <h2>View Patient (Respecting Sharing Rules)</h2>
+    <div class="row">
+      <div class="field"><label for="patient_id">Patient User ID</label><input id="patient_id" placeholder="USR_PAT_001"></div>
+      <div class="field" style="max-width:160px;align-self:flex-end"><button id="btn_view">View</button></div>
+    </div>
+    <div id="patient_view" class="small"></div>
+  </div>
+
+</div>
+
+<script>
+// ----- role & pin helpers (same as patients page) -----
+function roleFromUser(u){
+  if(!u) return null;
+  if(u.startsWith("USR_PAT_")) return "patient";
+  if(u.startsWith("USR_DOC_")) return "doctor";
+  if(u.startsWith("USR_PHA_")) return "pharmacist";
+  if(u.startsWith("USR_NUR_")) return "nurse";
+  if(u.startsWith("USR_ADM_")) return "admin";
+  return "unknown";
+}
+function pinOk(u,p){
+  const r=roleFromUser(u);
+  if(r==="patient") return p==="1111";
+  if(r==="doctor") return p==="2222";
+  if(r==="nurse") return p==="3333";
+  if(r==="pharmacist") return p==="4444";
+  if(r==="admin") return p==="5555";
+  return false;
+}
+
+// storage
+let store = JSON.parse(localStorage.getItem("patient_profiles")||"{}");
+let currentViewer = null;
+
+// elements
+const elVUser=document.getElementById('v_user');
+const elVPin =document.getElementById('v_pin');
+const elVBtn =document.getElementById('btn_vlog');
+const elVStat=document.getElementById('v_status');
+
+const elLookup=document.getElementById('lookup_card');
+const elPID  =document.getElementById('patient_id');
+const elBtnView=document.getElementById('btn_view');
+const elPView=document.getElementById('patient_view');
+
+// viewer login
+elVBtn.onclick=()=>{
+  const u=elVUser.value.trim(), p=elVPin.value.trim();
+  if(!u||!p) return alert("Enter User ID and PIN");
+  if(!pinOk(u,p)) return alert("Invalid credentials");
+  currentViewer={id:u, role:roleFromUser(u)};
+  elVStat.textContent=`✅ Logged in as ${u} (${currentViewer.role})`;
+  elLookup.style.display="block";
+};
+
+// access check
+function canView(patientUserId, viewer){
+  const rec = store[patientUserId];
+  if(!rec) return {ok:false, msg:"No profile found for this patient."};
+  const share = rec.share || {mode:"alldoctors",list:[]};
+
+  if(share.mode==="all") return {ok:true};
+  if(share.mode==="alldoctors" && viewer.role==="doctor") return {ok:true};
+  if(share.mode==="custom"){
+    if((share.list||[]).includes(viewer.id)) return {ok:true};
+    return {ok:false, msg:"Patient restricted access (custom list). You are not on the list."};
+  }
+  return {ok:false, msg:"Patient restricted access."};
+}
+
+// view patient
+elBtnView.onclick=()=>{
+  if(!currentViewer) return alert("Login first");
+  const pid = elPID.value.trim();
+  if(!pid) return;
+  if(roleFromUser(pid)!=="patient") { elPView.textContent="Enter a valid patient user ID (e.g., USR_PAT_001)"; return; }
+
+  // refresh latest store
+  store = JSON.parse(localStorage.getItem("patient_profiles")||"{}");
+  const rec = store[pid];
+  if(!rec){ elPView.textContent="No profile saved by this patient yet."; return; }
+
+  const chk = canView(pid, currentViewer);
+  if(!chk.ok){ elPView.textContent = "❌ Access denied: " + (chk.msg||""); return; }
+
+  const d = rec.info||{};
+  elPView.innerHTML = `
+    <div class="badge" style="margin-bottom:8px">Sharing: ${rec.share?.mode||"alldoctors"} ${rec.share?.mode==="custom" ? ("["+ (rec.share.list||[]).join(", ")+"]"):""}</div>
+    <div><b>Name:</b> ${d.name||"-"}</div>
+    <div><b>Age/Gender:</b> ${d.age||"-"} / ${d.gender||"-"}</div>
+    <div><b>Weight/Height:</b> ${d.weight||"-"} kg / ${d.height||"-"} cm</div>
+    <hr>
+    <div><b>Conditions:</b> ${d.conditions||"-"}</div>
+    <div><b>Allergies:</b> ${d.allergies||"-"}</div>
+    <div><b>Medications:</b> ${d.medications||"-"}</div>
+    <div><b>Other Notes:</b> ${d.others||"-"}</div>
+  `;
+};
+
+  const header = document.querySelector('header');
+
+  let mouseAtTop = false;
+
+  document.addEventListener('mousemove', (e) => {
+    // If cursor is near the top of the screen, show navbar
+    if (e.clientY < 50) {
+      if (!mouseAtTop) {
+        mouseAtTop = true;
+        header.classList.add('visible');
+      }
+    } else {
+      if (mouseAtTop) {
+        mouseAtTop = false;
+        header.classList.remove('visible');
+      }
+    }
+  });
+</script>
+</body></html>
