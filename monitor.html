@@ -1,185 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>CityCare — Patient Monitoring</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header>
-      <h1>🏥 CityCare — Indore</h1>
-      <nav class="nav" id="topnav">
-        <a href="index.html">Home</a>
-        <a href="map.html">Map</a>
-        <a href="patients.html">Patients</a>
-        <a href="schedule.html">Scheduling</a>
-        <a href="sharing.html">Data Sharing</a>
-        <a href="alerts.html">Alerts</a>
-        <a class="active" href="monitor.html">Monitoring</a>
-      </nav>
-    </header>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CityCare — Patient Monitor</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <style>
+      :root {
+        --border: #1e2a44;
+        --bg: #0b1220;
+        --card: #0f1830;
+        --ink: #e7eefc;
+        --muted: #9cc0ff;
+        --accent: #2483ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      }
 
-    <div class="main">
-      <!-- Doctor Login -->
-      <div class="card">
-        <h2>Doctor Login</h2>
-        <div class="row">
-          <div class="field">
-            <label>Doctor ID</label><input id="doc_id" placeholder="DOC_001" />
-          </div>
-          <div class="field">
-            <label>PIN</label
-            ><input id="doc_pin" type="password" placeholder="••••" />
-          </div>
-          <div class="field" style="flex: 0 0 180px; align-self: flex-end">
-            <button id="btn_login">Login</button>
-          </div>
-        </div>
-        <span id="login_status" class="badge">Not logged in</span>
-      </div>
+      /* Header + Nav */
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--accent);
+        background: #0d1730;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--accent);
+      }
+      .nav a {
+        color: #cfe0ff;
+        text-decoration: none;
+        margin: 0 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+      }
+      .nav a.active,
+      .nav a:hover {
+        background: #142243;
+      }
 
-      <!-- Patient Selection -->
-      <div id="sel_card" class="card" style="display: none">
-        <h2>Select Patient</h2>
-        <div class="row">
-          <div class="field">
-            <label>Patient ID</label>
-            <select id="patient_select"></select>
-          </div>
-          <div class="field" style="flex: 0 0 200px; align-self: flex-end">
-            <button id="btn_start">Start Monitoring</button>
-          </div>
-        </div>
-      </div>
+      /* Page layout */
+      .main {
+        max-width: 1200px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .grid {
+        display: grid;
+        gap: 14px;
+      }
+      .grid.cols-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      @media (max-width: 900px) {
+        .grid.cols-3 {
+          grid-template-columns: 1fr;
+        }
+      }
 
-      <!-- Monitoring Panel -->
-      <div id="monitor_card" class="card" style="display: none">
-        <h2>Live Patient Vitals</h2>
-        <p class="small">Select which vitals you want to monitor:</p>
-        <div class="row">
-          <label
-            ><input
-              type="checkbox"
-              class="stat_chk"
-              value="heart_rate"
-              checked
-            />
-            Heart Rate</label
-          >
-          <label
-            ><input type="checkbox" class="stat_chk" value="o2_sat" checked />
-            O₂ Saturation</label
-          >
-          <label
-            ><input type="checkbox" class="stat_chk" value="temp" />
-            Temperature</label
-          >
-          <label
-            ><input type="checkbox" class="stat_chk" value="bp" /> Blood
-            Pressure</label
-          >
-        </div>
+      /* Buttons, inputs used on home cards (minimal) */
+      .btn {
+        cursor: pointer;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 8px 12px;
+      }
+      .btn.secondary {
+        background: #24345f;
+      }
+      input,
+      select {
+        padding: 10px;
+        border: 1px solid #24345f;
+        border-radius: 10px;
+        background: #0c1430;
+        color: var(--ink);
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      footer.note {
+        font-size: 12px;
+        color: #9cc0ff;
+        text-align: center;
+        margin: 24px 0;
+      }
+    </style>
+<header>
+  <h1>🏥 CityCare — Indore</h1>
+  <nav class="nav" id="topnav">
+    <a href="index.html">Home</a>
+    <a href="map.html">Map</a>
+    <a href="patients.html">Patients</a>
+    <a href="schedule.html">Scheduling</a>
+    <a href="sharing.html">Data Sharing</a>
+    <a href="alerts.html">Alerts</a>
+    <a class="active" href="monitor.html">Monitor</a>
+  </nav>
+</header>
 
-        <hr />
-
-        <div id="vitals_grid" class="grid cols-2"></div>
-      </div>
+<div class="main">
+  <!-- Doctor login -->
+  <div class="card">
+    <h2>Doctor Login</h2>
+    <div class="row">
+      <input id="doc_id" placeholder="Doctor ID (e.g. DOC_001)" style="min-width:220px">
+      <input id="doc_pin" type="password" placeholder="PIN (e.g. 2222)" style="min-width:150px">
+      <button id="login_btn">Login</button>
+      <span id="login_status" class="badge">Not logged in</span>
     </div>
+  </div>
 
-    <script>
-      const API = "http://127.0.0.1:8000";
-      let SESSION = null,
-        activePatient = null;
-      const qs = (id) => document.getElementById(id);
+  <!-- Select patient -->
+  <div id="patient_select_card" class="card" style="display:none">
+    <h2>Select Patient to Monitor</h2>
+    <div class="row">
+      <input id="patient_id" placeholder="Patient ID (e.g. PAT_001)">
+      <button id="load_btn">Load Patient</button>
+      <span id="patient_status" class="badge">—</span>
+    </div>
+  </div>
 
-      // Navbar active state
-      (function () {
-        const file = location.pathname.split("/").pop() || "monitor.html";
-        document.querySelectorAll("#topnav a").forEach((a) => {
-          a.classList.toggle("active", a.getAttribute("href") === file);
-        });
-      })();
+  <!-- Monitoring view -->
+  <div id="monitor_card" class="card" style="display:none">
+    <h2>Real-Time Monitoring</h2>
+    <div class="row">
+      <label>Select Stat</label>
+      <select id="stat_select">
+        <option value="heart_rate">Heart Rate</option>
+        <option value="o2">O₂ Saturation</option>
+        <option value="temperature">Body Temperature</option>
+      </select>
+    </div>
+    <div id="monitor_display" style="margin-top:20px;font-size:26px;font-weight:bold;text-align:center;">
+      Waiting for sensor data...
+    </div>
+  </div>
+</div>
 
-      // Doctor Login
-      qs("btn_login").onclick = async () => {
-        const user = qs("doc_id").value.trim(),
-          pin = qs("doc_pin").value.trim();
-        if (!user || !pin) return alert("Enter ID and PIN");
-        const r = await fetch(`${API}/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ user_id: user, pin }),
-        });
-        if (!r.ok) return alert("Invalid credentials");
-        SESSION = await r.json();
-        qs("login_status").textContent = `Logged in as ${SESSION.user.name}`;
-        qs("sel_card").style.display = "block";
+<footer class="small" style="text-align:center;margin:24px 0;color:#9cc0ff">
+  © 2025 CityCare Project — Monitoring Module
+</footer>
 
-        // Load patient list
-        const list = await fetch(`${API}/patients`).then((r) => r.json());
-        const sel = qs("patient_select");
-        sel.innerHTML = list
-          .map(
-            (p) =>
-              `<option value="${p.user_id}">${p.user_id} — ${
-                p.name || "Unnamed"
-              }</option>`
-          )
-          .join("");
-      };
+<script src="common.js"></script>
+<script>
+const API = "http://127.0.0.1:8000"; // your backend
 
-      // Start Monitoring
-      qs("btn_start").onclick = () => {
-        activePatient = qs("patient_select").value;
-        if (!activePatient) return alert("Select a patient");
-        qs("monitor_card").style.display = "block";
-        startMonitoring();
-      };
+const qs = (id)=>document.getElementById(id);
 
-      // IoT mock data stream
-      function random(min, max) {
-        return Math.round(min + Math.random() * (max - min));
-      }
-      function mockIoTData() {
-        return {
-          heart_rate: random(60, 110),
-          o2_sat: random(92, 100),
-          temp: (36 + Math.random() * 1.5).toFixed(1),
-          bp: `${random(100, 130)}/${random(70, 90)}`,
-        };
-      }
+let session = { doctor:null, patient:null, stat:'heart_rate' };
 
-      function renderVitals(data) {
-        const grid = qs("vitals_grid");
-        const selected = [
-          ...document.querySelectorAll(".stat_chk:checked"),
-        ].map((c) => c.value);
-        grid.innerHTML = selected
-          .map((stat) => {
-            const label = {
-              heart_rate: "❤️ Heart Rate (bpm)",
-              o2_sat: "🫁 O₂ Saturation (%)",
-              temp: "🌡️ Temperature (°C)",
-              bp: "🩸 Blood Pressure (mmHg)",
-            }[stat];
-            const val = data[stat];
-            return `<div class="card" style="text-align:center">
-              <h3 style="color:var(--accent);margin:0">${label}</h3>
-              <h1 style="margin:6px 0">${val}</h1>
-              <p class="small">Updated ${new Date().toLocaleTimeString()}</p>
-            </div>`;
-          })
-          .join("");
-      }
+// doctor login
+qs('login_btn').onclick = async ()=>{
+  const id = qs('doc_id').value.trim();
+  const pin = qs('doc_pin').value.trim();
+  if(!id || !pin){ alert("Enter doctor ID and PIN"); return; }
+  const ok = (id.startsWith('DOC_') && pin === '2222'); // demo rule
+  if(ok){
+    session.doctor = id;
+    qs('login_status').textContent = `Logged in as ${id}`;
+    qs('patient_select_card').style.display = '';
+  } else {
+    alert("Invalid login");
+  }
+};
 
-      function startMonitoring() {
-        setInterval(() => {
-          const data = mockIoTData();
-          renderVitals(data);
-          // later: replace with fetch(`${API}/iot/latest?patient=${activePatient}`)
-        }, 3000);
-      }
-    </script>
-  </body>
+// load patient for monitoring
+qs('load_btn').onclick = async ()=>{
+  const pid = qs('patient_id').value.trim();
+  if(!pid){ alert("Enter patient ID"); return; }
+  session.patient = pid;
+  qs('patient_status').textContent = `Monitoring ${pid}`;
+  qs('monitor_card').style.display = '';
+  startMonitoring();
+};
+
+// stat selection
+qs('stat_select').onchange = ()=>{
+  session.stat = qs('stat_select').value;
+  startMonitoring();
+};
+
+// mock IoT sensor connection
+function startMonitoring(){
+  const display = qs('monitor_display');
+  clearInterval(window.sensorLoop);
+  window.sensorLoop = setInterval(async ()=>{
+    // simulate getting data from an IoT device API
+    // In real deployment, fetch from a microcontroller endpoint:
+    // const r = await fetch(`http://sensor.local/api/${session.patient}/${session.stat}`);
+    // const data = await r.json();
+
+    let value;
+    if(session.stat === 'heart_rate') value = Math.floor(70 + Math.random()*30) + ' bpm';
+    if(session.stat === 'o2') value = (95 + Math.random()*4).toFixed(1) + '%';
+    if(session.stat === 'temperature') value = (36 + Math.random()*1.5).toFixed(1) + ' °C';
+
+    display.textContent = `${session.stat.replace('_',' ').toUpperCase()}: ${value}`;
+  }, 2000);
+}
+</script>
+</body>
 </html>
