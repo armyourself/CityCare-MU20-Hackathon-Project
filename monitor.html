@@ -159,6 +159,12 @@ header button{
     });
   })();
 
+  // Floating navbar visibility
+  const header = document.querySelector('header');
+  document.addEventListener('mousemove', e => {
+    if (e.clientY < 50) header.classList.add('visible');
+    else header.classList.remove('visible');
+  });
 </script>
 
 </body>
