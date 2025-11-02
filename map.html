@@ -1,647 +1,352 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CityCare — Map (Type Only, Correct Buckets + Full Hover Names)</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>CityCare — Map</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css">
 <style>
-  header {
-  transition: transform 0.3s ease;
-  transform: translateY(-100%);
+:root{
+  --bg:#0b1220; --card:#0f1830; --ink:#e7eefc; --muted:#9cc0ff;
+  --accent:#2483ff; --border:#1e2a44; --panel:#101a34;
 }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
+header h1{margin:0;font-size:18px;color:var(--accent)}
+.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
+.nav a.active,.nav a:hover{background:#142243}
 
-header.visible {
-  transform: translateY(0);
-}
+.layout{display:grid;grid-template-columns:1fr 340px;gap:12px;max-width:1400px;margin:14px auto;padding:0 12px}
+@media (max-width:1000px){.layout{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px}
+#map{height:78vh;border-radius:10px}
+.side h3{margin:0 0 8px;color:var(--accent)}
+label{font-size:12px;color:var(--muted)}
+input,select,button{width:100%;padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
+button{cursor:pointer;background:var(--accent);border:none}
+.small{font-size:12px;color:var(--muted)}
+.row{display:flex;gap:8px;align-items:center}
+.badge{padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:#142243;color:#bcd0ff;font-size:12px}
 
-:root {
-  --border: #cfd7e6;
-  --bg: #f7f9fd;
-  --card: #ffffff;
-  --ink: #0a0a0a;
-  --muted: #5c6e8c;
-  --accent: #0059d6;
-}
+/* legend outside map */
+.legend-wrap{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+.legend{display:flex;align-items:center;gap:6px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:6px 8px}
+.legend .dot{width:10px;height:10px;border-radius:50%}
 
-* {
-  box-sizing: border-box;
+/* inline add form for label/type */
+#addForm{
+  position:absolute; z-index:4000; background:var(--panel);
+  border:1px solid var(--border); border-radius:10px; padding:10px; width:260px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4); display:none;
 }
-
-body {
-  margin: 0;
-  background: var(--bg);
-  color: var(--ink);
-  font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-}
-
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--accent);
-  background: #eaf0ff;
-  position: sticky;
-  top: 0;
-  z-index: 20;
-}
-
-header h1 {
-  margin: 0;
-  font-size: 18px;
-  color: var(--accent);
-}
-
-.nav a {
-  color: #003c99;
-  text-decoration: none;
-  margin: 0 8px;
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-
-.nav a.active,
-.nav a:hover {
-  background: #dce7ff;
-}
-
-.row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-input,
-button,
-select {
-  padding: 8px;
-  border: 1px solid #b4c3e0;
-  border-radius: 8px;
-  background: #ffffff;
-  color: var(--ink);
-}
-
-button {
-  cursor: pointer;
-  background: var(--accent);
-  border: none;
-  color: #ffffff;
-}
-
-.main {
-  max-width: 1200px;
-  margin: 16px auto;
-  padding: 0 16px;
-}
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-.split {
-  display: flex;
-  gap: 12px;
-}
-
-.left {
-  flex: 1;
-  min-width: 0;
-}
-
-.right {
-  width: 320px;
-}
-
-#map {
-  width: 100%;
-  height: 72vh;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-}
-
-.small {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.clickform {
-  position: absolute;
-  z-index: 9999;
-  background: #ffffff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px;
-  width: 260px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-}
-
-.leaflet-tooltip {
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid var(--border);
-  color: var(--ink);
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 12px;
-}
-
-.legend-card {
-  margin-top: 10px;
-  display: flex;
-  gap: 16px;
-  align-items: center;
-  flex-wrap: wrap;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 14px;
-}
-
-.legend-card h4 {
-  margin: 0;
-  font-size: 13px;
-  color: var(--accent);
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.legend-item img {
-  width: 20px;
-  height: 33px;
-}
-
-.counts {
-  margin-left: auto;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.badge {
-  padding: 2px 8px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: #eef3ff;
-  color: #003c99;
-}
-
-/* Autocomplete */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 10px;
-}
-
-label {
-  font-size: 12px;
-  color: var(--muted);
-}
-
-.suggest {
-  position: relative;
-}
-
-.suggest-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 50;
-  background: #ffffff;
-  border: 1px solid #b4c3e0;
-  border-radius: 10px;
-  margin-top: 4px;
-  max-height: 220px;
-  overflow: auto;
-  display: none;
-}
-
-.suggest-item {
-  padding: 8px 10px;
-  cursor: pointer;
-  color: var(--ink);
-}
-
-.suggest-item:hover {
-  background: #eaf0ff;
-}
-
-/* Hard-disable all Leaflet popups */
-.leaflet-popup {
-  display: none !important;
-}
-
-@media (max-width: 1000px) {
-  .split {
-    flex-direction: column;
-  }
-  .right {
-    width: 100%;
-  }
-  #map {
-    height: 60vh;
-  }
-}
+#addForm .row2{display:grid;grid-template-columns:1fr;gap:8px}
+#addForm .btns{display:flex;gap:8px;justify-content:flex-end}
+.btn-secondary{background:#24345f}
+.notice{margin-top:6px;color:#9cc0ff;font-size:12px}
 </style>
-
-</head><body>
+</head>
+<body>
 <header>
-  <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav">
-    <a href="index.html">Home</a><a class="active" href="map.html">Map</a>
-    <a href="patients.html">Patients</a><a href="schedule.html">Scheduling</a>
-    <a href="sharing.html">Data Sharing</a><a href="alerts.html">Alerts</a>
+  <h1> CityCare — Indore</h1>
+  <nav class="nav" id="topnav">
+    <a href="index.html" data-page="index.html">Home</a>
+    <a class="active" href="map.html" data-page="map.html">Map</a>
+    <a href="patients.html" data-page="patients.html">Patients</a>
+    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
+    <a href="sharing.html" data-page="sharing.html">Data Sharing</a>
+    <a href="alerts.html" data-page="alerts.html">Alerts</a>
+    <a href="beds.html" data-page="beds.html">Beds</a>
   </nav>
-  <div class="row">
-    <input id="user_id" placeholder="User (USR_DOC_001)">
-    <input id="pin" placeholder="PIN">
-    <button id="btn_login">Login</button>
-  </div>
+  <a id="theme-toggle" class="card" href="#" style="text-decoration:none;color:inherit;display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:14px;">
+    🌙 <span class="small">Toggle Theme</span>
+  </a>
 </header>
 
-<div class="main">
-  <div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-    <div>
-      <h2 style="margin:6px 0;color:var(--accent)">CityCare Grid — Indore</h2>
+<div class="layout">
+  <div class="card">
+    <div id="map"></div>
+
+    <!-- legend outside map -->
+    <div class="legend-wrap">
+      <div class="legend"><span class="dot" style="background:#4ade80"></span><span>Hospital</span></div>
+      <div class="legend"><span class="dot" style="background:#60a5fa"></span><span>Ambulance</span></div>
+      <div class="legend"><span class="dot" style="background:#f97316"></span><span>Incident</span></div>
+      <div class="legend"><span class="dot" style="background:#eab308"></span><span>Custom</span></div>
+      <span class="badge" id="countBadge">0 markers</span>
     </div>
-    <div>
-      <button id="btn_refresh" style="padding:6px 12px;background:#24345f;border:none;border-radius:8px;color:var(--ink)">Refresh</button>
-      <button id="btn_clear_search" style="padding:6px 12px;background:#24345f;border:none;border-radius:8px;color:var(--ink);margin-left:8px">Clear Search Marker</button>
-    </div>
+    <div class="small">Tip: Click the map to add a marker — you’ll be asked for a <b>type</b> and a <b>label</b>. Click a marker to delete it. <b>Deleting hospitals/ambulances requires a Doctor ID.</b></div>
   </div>
 
-  <div class="split">
-    <!-- LEFT -->
-    <div class="left">
-      <div id="map"></div>
-      <div class="legend-card" id="legend">
-        <h4>Legend</h4>
-        <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png" alt="Hospital"> Hospital</div>
-        <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png" alt="Incident"> Incident</div>
-        <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png" alt="Ambulance"> Ambulance</div>
-        <div class="legend-item"><img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png" alt="Custom"> Custom</div>
-        <div class="counts">
-          <span class="badge" id="c_h">Hospitals: 0</span>
-          <span class="badge" id="c_i">Incidents: 0</span>
-          <span class="badge" id="c_a">Ambulances: 0</span>
-          <span class="badge" id="c_c">Custom: 0</span>
-        </div>
-      </div>
+  <!-- Right panel -->
+  <div class="card side">
+    <h3>Search & Place</h3>
+    <div class="row">
+      <input id="addr" placeholder="Search an address (e.g., Rajwada Palace, Indore)" />
+      <button id="btnFind" style="width:auto">Find</button>
     </div>
-
-    <!-- RIGHT -->
-    <div class="right">
-      <div class="card">
-        <h3 style="margin:4px 0;color:var(--accent)">Place a Marker</h3>
-
-        <div class="field suggest">
-          <label for="addr_text">Address / Place (Indore)</label>
-          <input id="addr_text" autocomplete="off" placeholder="e.g., Rajwada Palace, Indore">
-          <div id="addr_suggest" class="suggest-list"></div>
-        </div>
-
-        <div class="field">
-          <label for="addr_type">Type</label>
-          <select id="addr_type">
-            <option value="incident">incident</option>
-            <option value="hospital">hospital</option>
-            <option value="ambulance">ambulance</option>
-            <option value="custom">custom</option>
-          </select>
-        </div>
-
-        <button id="btn_addr_mark">Find &amp; Mark</button>
-
-        <hr style="border:0;border-top:1px solid var(--border);margin:12px 0">
-
-        <div class="field"><label>Or place by Lat/Lon</label></div>
-        <div class="row" style="gap:10px">
-          <div class="field" style="flex:1"><label for="lat_in">Latitude</label><input id="lat_in" placeholder="22.7196"></div>
-          <div class="field" style="flex:1"><label for="lon_in">Longitude</label><input id="lon_in" placeholder="75.8577"></div>
-        </div>
-        <div class="field">
-          <label for="ll_type">Type</label>
-          <select id="ll_type">
-            <option value="incident">incident</option>
-            <option value="hospital">hospital</option>
-            <option value="ambulance">ambulance</option>
-            <option value="custom" selected>custom</option>
-          </select>
-        </div>
-        <button id="btn_ll_mark">Mark Lat/Lon</button>
-
-        <div id="side_msg" class="small" style="margin-top:8px"></div>
-      </div>
+    <div id="suggestions" class="small" style="margin-top:8px"></div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <h3>Quick Add</h3>
+    <div class="small" style="margin-bottom:6px">Add by coordinates</div>
+    <div class="row">
+      <input id="lat" placeholder="Lat" />
+      <input id="lng" placeholder="Lng" />
+      <button id="btnAdd" style="width:auto">Add</button>
+    </div>
+    <div class="small notice">You will be asked for a label after placing.</div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0">
+    <div class="row">
+      <button id="btnClearAll" class="btn-secondary">Clear ALL (Doctor ID needed for protected)</button>
+      <button id="btnReload" class="btn-secondary">Reload</button>
     </div>
   </div>
 </div>
 
+<!-- inline add form -->
+<div id="addForm">
+  <div class="row2">
+    <div>
+      <label>Type</label>
+      <select id="mkType">
+        <option value="custom">Custom</option>
+        <option value="hospital">Hospital</option>
+        <option value="ambulance">Ambulance</option>
+        <option value="incident">Incident</option>
+      </select>
+    </div>
+    <div>
+      <label>Label</label>
+      <input id="mkLabel" placeholder="e.g., Apollo Hospital — ER Gate" />
+    </div>
+    <div class="btns">
+      <button id="mkCancel" class="btn-secondary" type="button">Cancel</button>
+      <button id="mkSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<footer class="small" style="text-align:center;margin:18px 0;color:#9cc0ff">© 2025 CityCare Project — Map Module</footer>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 <script>
-/* ---------- Auth (stub) ---------- */
-const API="http://127.0.0.1:8000"; let SESSION=null;
-btn_login.onclick=async()=>{const u=user_id.value.trim(),p=pin.value.trim();if(!u||!p)return alert("Enter user & PIN");
- const r=await fetch(`${API}/auth/login`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:u,pin:p})});
- if(!r.ok)return alert("Invalid PIN");SESSION=await r.json();alert(`Logged in as ${SESSION.user.name} (${SESSION.user.role})`);};
+/* Navbar active */
+(function(){
+  const file = location.pathname.split("/").pop() || "map.html";
+  document.querySelectorAll('#topnav a').forEach(a=>{
+    if(a.dataset?.page===file) a.classList.add('active'); else a.classList.remove('active');
+  });
+})();
 
-/* ---------- Map ---------- */
-const indoreBounds=[[22.60,75.70],[22.84,76.02]];
-const map=L.map('map',{zoomControl:true,minZoom:11,maxZoom:18});
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(map);
-map.fitBounds(indoreBounds);
-map.setMaxBounds([[22.55,75.60],[22.90,76.10]]);
-map.on('drag',()=>map.panInsideBounds(map.options.maxBounds,{animate:true}));
+/* Storage */
+const LS_KEY = "citycare_markers_v3";
+const loadStore = ()=> JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+const saveStore = (arr)=> localStorage.setItem(LS_KEY, JSON.stringify(arr));
+let store = loadStore();
 
-/* ---------- Geocoder (no popups) ---------- */
-let searchMarker=null;
-const geocoder=L.Control.geocoder({defaultMarkGeocode:false,geocoder:L.Control.Geocoder.nominatim()})
-.on('markgeocode',e=>{
-  const c=e.geocode.center;
-  if(searchMarker) map.removeLayer(searchMarker);
-  searchMarker=L.marker(c).addTo(map);
-  map.setView(c,16);
+/* Map */
+const map = L.map('map', { center:[22.7206, 75.8577], zoom:12, worldCopyJump:true });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19, attribution: '&copy; OpenStreetMap'
 }).addTo(map);
-btn_clear_search.onclick=()=>{ if(searchMarker){ map.removeLayer(searchMarker); searchMarker=null; } };
 
-/* ---------- Icons ---------- */
-function icon(c){return new L.Icon({
-  iconUrl:`https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${c}.png`,
-  shadowUrl:'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-  iconSize:[20,33],shadowSize:[33,33],iconAnchor:[10,33],tooltipAnchor:[0,-26]
-});}
-const icBlue=icon("blue"),icRed=icon("red"),icGold=icon("gold"),icGreen=icon("green");
-
-/* ---------- Layers (backend + user) ---------- */
-let layers={fac:[],inc:[],amb:[],custom:[], u_fac:[],u_inc:[],u_amb:[],u_custom:[]};
-function clearLayer(a){a.forEach(m=>map.removeLayer(m));a.length=0;}
-
-/* Hidden backend markers */
-const hidden=JSON.parse(localStorage.getItem("citycare_hidden")||'{"fac":[],"inc":[],"amb":[]}');
-function saveHidden(){localStorage.setItem("citycare_hidden",JSON.stringify(hidden));}
-
-/* User markers persisted by type */
-let userMarks=JSON.parse(localStorage.getItem("citycare_user")||"[]"); // [{type,lat,lon,name?}]
-function saveUser(){localStorage.setItem("citycare_user",JSON.stringify(userMarks));}
-
-/* ---------- Name helpers ---------- */
-function shortNameFromDisplayName(disp){
-  if(!disp) return "";
-  const first = disp.split(",")[0].trim();
-  return first.length>60 ? first.slice(0,57)+"…" : first;
+/* Small colored icons */
+function mkIcon(color){
+  const svg = encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="18" height="28" viewBox="0 0 24 36"><path fill="${color}" d="M12 0C5.4 0 0 5.4 0 12c0 8 12 24 12 24s12-16 12-24C24 5.4 18.6 0 12 0z"/><circle cx="12" cy="12" r="5" fill="#0b1220"/></svg>`);
+  return L.icon({iconUrl:`data:image/svg+xml,${svg}`, iconSize:[18,28], iconAnchor:[9,28], popupAnchor:[0,-26]});
 }
-async function reverseShort(lat,lon){
-  try{
-    const url=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
-    const r=await fetch(url,{headers:{'Accept':'application/json'}});
-    const j=await r.json();
-    return shortNameFromDisplayName(j.display_name||"");
-  }catch(e){ return ""; }
+const ICONS = {
+  hospital: mkIcon('#4ade80'),
+  ambulance: mkIcon('#60a5fa'),
+  incident: mkIcon('#f97316'),
+  custom: mkIcon('#eab308')
+};
+
+/* Helpers */
+const badge = document.getElementById('countBadge');
+function isProtectedType(t){ return (t||'').toLowerCase()==='hospital' || (t||'').toLowerCase()==='ambulance'; }
+function askDoctorIdOrDeny(){
+  const id = prompt("Doctor ID required to remove this marker (format: DOC_...)");
+  if(!id) return null;
+  if(!/^doc[_-]?/i.test(id)) { alert("Invalid Doctor ID. Must start with 'DOC'"); return null; }
+  return id.trim();
 }
 
-/* ---------- Counters ---------- */
-function updateCounts(){
-  const totalHosp = layers.fac.length + layers.u_fac.length;
-  const totalInc  = layers.inc.length + layers.u_inc.length;
-  const totalAmb  = layers.amb.length + layers.u_amb.length;
-  const totalCus  = layers.custom.length + layers.u_custom.length;
-  c_h.textContent=`Hospitals: ${totalHosp}`;
-  c_i.textContent=`Incidents: ${totalInc}`;
-  c_a.textContent=`Ambulances: ${totalAmb}`;
-  c_c.textContent=`Custom: ${totalCus}`;
-}
-
-/* ---------- Generic add (user) -> correct bucket ---------- */
-function tipText(o){
-  if(o.type==="hospital")  return o.name?`Hospital: ${o.name}`:"Hospital";
-  if(o.type==="ambulance") return o.name?`Ambulance: ${o.name}`:"Ambulance";
-  if(o.type==="incident")  return o.name?`Incident: ${o.name}`:"Incident";
-  return o.name?`Custom: ${o.name}`:"Custom";
-}
-function iconForType(t){ return t==="hospital"?icBlue : t==="ambulance"?icGold : t==="incident"?icRed : icGreen; }
-function addUserMarker(o){
-  const m=L.marker([o.lat,o.lon],{icon:iconForType(o.type)}).bindTooltip(tipText(o),{direction:"top"});
-  m.on('click',()=>{
-    if(confirm(`Remove ${tipText(o)}?`)){
-      map.removeLayer(m);
-      // remove from layer bucket
-      const arr = o.type==="hospital"?layers.u_fac : o.type==="ambulance"?layers.u_amb : o.type==="incident"?layers.u_inc : layers.u_custom;
-      const idxM = arr.indexOf(m); if(idxM>=0) arr.splice(idxM,1);
-      // remove from storage
-      const idx = userMarks.findIndex(x=>x.lat===o.lat && x.lon===o.lon && x.type===o.type && (x.name||"")=== (o.name||""));
-      if(idx>=0){ userMarks.splice(idx,1); saveUser(); }
-      updateCounts();
-    }
+/* Render markers */
+let leafletMarkers = new Map(); // id -> L.marker
+function renderAll(){
+  leafletMarkers.forEach(m => map.removeLayer(m));
+  leafletMarkers.clear();
+  store.forEach(rec=>{
+    const m = L.marker([rec.lat,rec.lng], {icon: ICONS[rec.type]||ICONS.custom})
+      .addTo(map)
+      .bindTooltip(rec.label || rec.type || 'marker', {permanent:false, direction:'top', opacity:0.9});
+    const html = `
+      <b>${rec.label || '(no label)'}</b><br>
+      <span class="small">${(rec.type||'').toUpperCase()}</span><br>
+      <button data-id="${rec.id}" class="delBtn">Delete</button>`;
+    m.bindPopup(html);
+    m.on('popupopen', (e)=>{
+      const btn = e.popup._contentNode.querySelector('.delBtn');
+      if(btn){
+        btn.onclick = ()=>{
+          // Enforce Doctor ID for protected types
+          if(isProtectedType(rec.type)){
+            const ok = askDoctorIdOrDeny();
+            if(!ok) return;
+          }
+          if(confirm('Delete this marker?')){
+            removeById(rec.id);
+            e.popup.remove();
+          }
+        };
+      }
+    });
+    leafletMarkers.set(rec.id, m);
   });
-  m.addTo(map);
-  if(o.type==="hospital") layers.u_fac.push(m);
-  else if(o.type==="ambulance") layers.u_amb.push(m);
-  else if(o.type==="incident") layers.u_inc.push(m);
-  else layers.u_custom.push(m);
+  badge.textContent = `${store.length} marker${store.length!==1?'s':''}`;
 }
-
-/* ---------- Draw user markers ---------- */
-function drawUser(){
-  clearLayer(layers.u_fac); clearLayer(layers.u_inc); clearLayer(layers.u_amb); clearLayer(layers.u_custom);
-  userMarks.forEach(addUserMarker);
-}
-
-/* ---------- Backend draw (still hideable) ---------- */
-function drawBackend(st){
-  clearLayer(layers.fac); clearLayer(layers.inc); clearLayer(layers.amb);
-
-  st?.facilities?.forEach(f=>{
-    if(hidden.fac.includes(f.id))return;
-    const m=L.marker([f.lat,f.lon],{icon:icBlue}).bindTooltip(`Hospital: ${f.name}`,{direction:"top"});
-    m.on('click',()=>{ if(confirm(`Hide hospital ${f.name}?`)){
-      map.removeLayer(m); layers.fac=layers.fac.filter(x=>x!==m);
-      if(!hidden.fac.includes(f.id)){hidden.fac.push(f.id);saveHidden();updateCounts();}
-    }});
-    m.addTo(map); layers.fac.push(m);
-  });
-
-  st?.incidents?.forEach(i=>{
-    if(hidden.inc.includes(i.id))return;
-    const title = i.type || "Incident";
-    const m=L.marker([i.lat,i.lon],{icon:icRed}).bindTooltip(`Incident: ${title}`,{direction:"top"});
-    m.on('click',()=>{ if(confirm(`Hide incident ${i.id}?`)){
-      map.removeLayer(m); layers.inc=layers.inc.filter(x=>x!==m);
-      if(!hidden.inc.includes(i.id)){hidden.inc.push(i.id);saveHidden();updateCounts();}
-    }});
-    m.addTo(map); layers.inc.push(m);
-  });
-
-  st?.ambulances?.forEach(a=>{
-    if(hidden.amb.includes(a.id))return;
-    const nm = a.id + (a.status?` (${a.status})`:"");
-    const m=L.marker([a.lat,a.lon],{icon:icGold}).bindTooltip(`Ambulance: ${nm}`,{direction:"top"});
-    m.on('click',()=>{ if(confirm(`Hide ambulance ${a.id}?`)){
-      map.removeLayer(m); layers.amb=layers.amb.filter(x=>x!==m);
-      if(!hidden.amb.includes(a.id)){hidden.amb.push(a.id);saveHidden();updateCounts();}
-    }});
-    m.addTo(map); layers.amb.push(m);
-  });
-}
-
-/* ---------- Refresh ---------- */
-async function refresh(){
-  try{ const r=await fetch(`${API}/state`); const st=await r.json(); drawBackend(st); }
-  catch(e){ console.warn("Backend not reachable; drawing only user markers.", e); }
-  drawUser(); updateCounts();
-}
-btn_refresh.onclick=refresh; refresh();
-
-/* ---------- Auth helper ---------- */
-function ensureStaffAuth(t){
-  if(t==="hospital"||t==="ambulance"){
-    const pin=prompt("Enter staff PIN (2222/3333/4444/5555)");
-    if(!["2222","3333","4444","5555"].includes(pin)) return false;
+function removeById(id){
+  const idx = store.findIndex(r=>r.id===id);
+  if(idx>=0){
+    const m = leafletMarkers.get(id);
+    if(m){ map.removeLayer(m); leafletMarkers.delete(id); }
+    store.splice(idx,1);
+    saveStore(store);
+    renderAll();
   }
-  return true;
 }
 
-/* ---------- Click-to-add (TYPE ONLY, but we auto-name from reverse geocode for nice hover) ---------- */
-let cf=null,lastLL=null;
-function buildForm(x,y,lat,lon){
-  if(cf){ cf.remove(); cf=null; window.cf=null; }
-  lastLL={lat,lon};
-  const d=document.createElement('div'); d.className='clickform'; d.style.left=`${x}px`; d.style.top=`${y}px`;
-  d.innerHTML=`<div class="small" style="margin-bottom:6px"><b>Location:</b> ${lat.toFixed(5)}, ${lon.toFixed(5)}</div>
-    <div class="row" style="margin:8px 0"><select id="cf_type">
-      <option value="">Choose type…</option>
-      <option value="incident">incident</option>
-      <option value="hospital">hospital</option>
-      <option value="ambulance">ambulance</option>
-      <option value="custom">custom</option>
-    </select></div>
-    <div class="row"><button id="cf_add">Add</button>
-    <button id="cf_cancel" style="background:#24345f">Cancel</button></div>`;
-  d.querySelector('#cf_add').onclick=async()=>{
-    const type=d.querySelector('#cf_type').value;
-    if(!type) return alert("Choose a type");
-    if(!ensureStaffAuth(type)) return alert("Not authorized");
-    // Auto-name from reverse geocode (short) for better hover
-    const nm = await reverseShort(lastLL.lat,lastLL.lon);
-    const obj={lat:lastLL.lat,lon:lastLL.lon,type,name:nm||undefined};
-    userMarks.push(obj); saveUser(); addUserMarker(obj); updateCounts();
-    d.remove(); cf=null; window.cf=null;
+/* Add form (asks Type + Label every time) */
+const addForm = document.getElementById('addForm');
+const mkType = document.getElementById('mkType');
+const mkLabel = document.getElementById('mkLabel');
+const mkSave = document.getElementById('mkSave');
+const mkCancel = document.getElementById('mkCancel');
+let pendingLatLng = null;
+
+function openAddForm(latlng, screenPoint){
+  pendingLatLng = latlng;
+  mkType.value = 'custom';
+  mkLabel.value = '';
+  addForm.style.left = (screenPoint.x + 12) + 'px';
+  addForm.style.top  = (screenPoint.y + 12) + 'px';
+  addForm.style.display = 'block';
+  mkLabel.focus();
+}
+function closeAddForm(){ addForm.style.display = 'none'; pendingLatLng = null; }
+mkCancel.onclick = closeAddForm;
+
+mkSave.onclick = ()=>{
+  if(!pendingLatLng) return;
+  const type = mkType.value || 'custom';
+  const label = mkLabel.value.trim();
+  if(!label){ alert('Please provide a label for this marker.'); return; }
+  // Optionally require auth for adding protected types too (kept simple: only for delete)
+  const rec = {
+    id: 'MK_' + Math.random().toString(36).slice(2,10),
+    lat: pendingLatLng.lat, lng: pendingLatLng.lng,
+    type, label
   };
-  d.querySelector('#cf_cancel').onclick=()=>{ d.remove(); cf=null; window.cf=null; };
-  document.body.appendChild(d); cf=d; window.cf=d;
-}
-map.on('click',e=>{
-  if(searchMarker){ map.removeLayer(searchMarker); searchMarker=null; }
-  const p=map.latLngToContainerPoint(e.latlng);
-  const r=document.getElementById('map').getBoundingClientRect();
-  buildForm(r.left+p.x+8, r.top+p.y+8, e.latlng.lat, e.latlng.lng);
-});
-document.addEventListener('click',(ev)=>{
-  if(!window.cf) return;
-  const pop=window.cf, mapEl=document.getElementById('map');
-  if(!pop.contains(ev.target) && !mapEl.contains(ev.target)){ pop.remove(); window.cf=null; cf=null; }
-});
-document.addEventListener('keydown',(ev)=>{ if(ev.key==='Escape' && window.cf){ window.cf.remove(); window.cf=null; cf=null; }});
-
-/* ---------- Right panel: Autocomplete (address -> user marker in correct bucket) ---------- */
-let addrChosen=null;
-const $addr=document.getElementById('addr_text'), $sug=document.getElementById('addr_suggest');
-function debounce(fn,ms){let to;return(...a)=>{clearTimeout(to);to=setTimeout(()=>fn(...a),ms);}}
-const viewbox='75.70,22.60,76.02,22.84';
-async function suggest(q){
-  const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=7&viewbox=${viewbox}&bounded=1&q=${encodeURIComponent(q)}`;
-  const r=await fetch(url,{headers:{'Accept':'application/json'}}); return await r.json();
-}
-const runSuggest=debounce(async()=>{
-  const q=$addr.value.trim(); addrChosen=null;
-  if(!q){ $sug.style.display='none'; $sug.innerHTML=''; return; }
-  const res=await suggest(q);
-  if(!res?.length){ $sug.style.display='none'; $sug.innerHTML=''; return; }
-  $sug.innerHTML=res.map((it,i)=>`<div class="suggest-item" data-i="${i}">${it.display_name}</div>`).join('');
-  $sug.style.display='block';
-  [...$sug.children].forEach((el,i)=>{
-    el.onclick=()=>{
-      const it=res[i];
-      addrChosen={lat:parseFloat(it.lat),lon:parseFloat(it.lon),name:shortNameFromDisplayName(it.display_name)};
-      $addr.value=it.display_name; $sug.style.display='none'; $sug.innerHTML='';
-    };
-  });
-},250);
-$addr.addEventListener('input',runSuggest);
-$addr.addEventListener('keydown',(e)=>{ if(e.key==='Escape'){ $sug.style.display='none'; } });
-document.addEventListener('click',(e)=>{ const box=document.querySelector('.suggest'); if(box && !box.contains(e.target)){ $sug.style.display='none'; } });
-
-async function geocodeFirst(q){
-  const url=`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&viewbox=${viewbox}&bounded=1&q=${encodeURIComponent(q)}`;
-  const r=await fetch(url,{headers:{'Accept':'application/json'}}); const js=await r.json();
-  if(js && js[0]) return {lat:parseFloat(js[0].lat),lon:parseFloat(js[0].lon),name:shortNameFromDisplayName(js[0].display_name)};
-  return null;
-}
-
-function requireTypeAuth(t){
-  if(!t){ alert("Choose a type"); return false; }
-  if(t==="hospital"||t==="ambulance"){
-    const pin=prompt("Enter staff PIN (2222/3333/4444/5555)");
-    if(!["2222","3333","4444","5555"].includes(pin)) { alert("Not authorized"); return false; }
-  }
-  return true;
-}
-
-btn_addr_mark.onclick=async()=>{
-  const t=addr_type.value;
-  if(!requireTypeAuth(t)) return;
-  side_msg.textContent="Searching…";
-  let g=addrChosen;
-  if(!g){
-    const q=$addr.value.trim(); if(!q){ side_msg.textContent="Enter an address."; return; }
-    g=await geocodeFirst(q);
-  }
-  if(!g){ side_msg.textContent="No results."; return; }
-  const obj={lat:g.lat,lon:g.lon,type:t,name:g.name};
-  userMarks.push(obj); saveUser(); addUserMarker(obj); updateCounts();
-  map.setView([g.lat,g.lon],16);
-  side_msg.textContent="✅ Marked";
+  store.push(rec);
+  saveStore(store);
+  closeAddForm();
+  renderAll();
 };
 
-btn_ll_mark.onclick=async()=>{
-  const lat=parseFloat(lat_in.value), lon=parseFloat(lon_in.value);
-  if(isNaN(lat)||isNaN(lon)) return alert("Enter valid lat & lon");
-  const t=ll_type.value; if(!requireTypeAuth(t)) return;
-  const nm = await reverseShort(lat,lon);
-  const obj={lat,lon,type:t,name:nm||undefined};
-  userMarks.push(obj); saveUser(); addUserMarker(obj); updateCounts();
-  map.setView([lat,lon],16);
-  side_msg.textContent="✅ Marked";
-};
+/* Map click -> open type+label form */
+map.on('click', (e)=>{
+  const pt = map.latLngToContainerPoint(e.latlng);
+  openAddForm(e.latlng, pt);
+});
 
-/* ---------- Initial draw ---------- */
-(async function init(){ await refresh(); })();
-
-  const header = document.querySelector('header');
-
-  let mouseAtTop = false;
-
-  document.addEventListener('mousemove', (e) => {
-    // If cursor is near the top of the screen, show navbar
-    if (e.clientY < 50) {
-      if (!mouseAtTop) {
-        mouseAtTop = true;
-        header.classList.add('visible');
-      }
-    } else {
-      if (mouseAtTop) {
-        mouseAtTop = false;
-        header.classList.remove('visible');
-      }
+/* Clicking elsewhere closes inline form */
+map.on('mousedown', (e)=>{
+  if(addForm.style.display==='block'){
+    const rect = addForm.getBoundingClientRect();
+    const x = e.originalEvent.clientX, y = e.originalEvent.clientY;
+    if(!(x>=rect.left && x<=rect.right && y>=rect.top && y<=rect.bottom)){
+      closeAddForm();
     }
-  });
+  }
+});
+
+/* Address search (Nominatim) */
+const btnFind = document.getElementById('btnFind');
+const addr = document.getElementById('addr');
+const sugg = document.getElementById('suggestions');
+
+btnFind.onclick = async ()=>{
+  const q = addr.value.trim();
+  if(!q){ alert('Enter an address/place'); return; }
+  sugg.innerHTML = 'Searching…';
+  const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=5`;
+  try{
+    const r = await fetch(url, {headers:{'Accept':'application/json'}});
+    const data = await r.json();
+    if(!data.length){ sugg.innerHTML = '<span class="small">No results.</span>'; return; }
+    sugg.innerHTML = '';
+    data.forEach(item=>{
+      const d = document.createElement('div');
+      d.className = 'small';
+      d.style.padding = '6px 8px';
+      d.style.border = '1px solid var(--border)';
+      d.style.borderRadius = '8px';
+      d.style.marginTop = '6px';
+      d.style.cursor = 'pointer';
+      d.textContent = item.display_name;
+      d.onclick = ()=>{
+        const lat = parseFloat(item.lat), lon = parseFloat(item.lon);
+        map.setView([lat,lon], 16);
+        const pt = map.latLngToContainerPoint({lat:lat, lng:lon});
+        openAddForm({lat:lat, lng:lon}, pt);
+      };
+      sugg.appendChild(d);
+    });
+  }catch(e){
+    sugg.innerHTML = '<span class="small">Lookup failed.</span>';
+  }
+};
+
+/* Quick Add by coordinates (also asks label) */
+document.getElementById('btnAdd').onclick = ()=>{
+  const la = parseFloat(document.getElementById('lat').value);
+  const ln = parseFloat(document.getElementById('lng').value);
+  if(Number.isNaN(la) || Number.isNaN(ln)){ alert('Enter valid numbers'); return; }
+  map.setView([la,ln], 16);
+  const pt = map.latLngToContainerPoint({lat:la, lng:ln});
+  openAddForm({lat:la, lng:ln}, pt);
+};
+
+/* Clear all with Doctor-ID protection */
+document.getElementById('btnClearAll').onclick = ()=>{
+  if(!store.length){ alert('No markers to clear.'); return; }
+  const hasProtected = store.some(r=>isProtectedType(r.type));
+  let docOk = true;
+  if(hasProtected){
+    const id = askDoctorIdOrDeny();
+    if(!id) { docOk = false; }
+  }
+  if(!confirm('Proceed with clearing?')){
+    return;
+  }
+  if(docOk){
+    // clear everything
+    store = [];
+  }else{
+    // clear only non-protected
+    store = store.filter(r=>isProtectedType(r.type));
+    alert('Cleared non-protected markers only. Hospital/Ambulance kept.');
+  }
+  saveStore(store);
+  renderAll();
+};
+
+document.getElementById('btnReload').onclick = ()=>{ location.reload(); };
+
+/* Initial draw */
+renderAll();
 </script>
-</body></html>
+</body>
+</html>
