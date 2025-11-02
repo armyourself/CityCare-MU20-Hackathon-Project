@@ -375,4 +375,16 @@ def get_patients():
     patients = [r[0] for r in c.fetchall()]
     conn.close()
     return {"patients": patients}
+
+@app.get("/iot/latest")
+def get_iot_data(patient: str):
+    import random
+    return {
+        "patient": patient,
+        "heart_rate": random.randint(60,110),
+        "o2_sat": random.randint(92,100),
+        "temp": round(random.uniform(36.0, 37.5),1),
+        "bp": f"{random.randint(100,130)}/{random.randint(70,90)}"
+    }
+
 # ============================================================

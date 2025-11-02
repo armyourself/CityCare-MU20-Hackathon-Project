@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CityCare — Patient Monitoring</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🏥 CityCare — Indore</h1>
+      <nav class="nav" id="topnav">
+        <a href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="patients.html">Patients</a>
+        <a href="schedule.html">Scheduling</a>
+        <a href="sharing.html">Data Sharing</a>
+        <a href="alerts.html">Alerts</a>
+        <a class="active" href="monitor.html">Monitoring</a>
+      </nav>
+    </header>
+
+    <div class="main">
+      <!-- Doctor Login -->
+      <div class="card">
+        <h2>Doctor Login</h2>
+        <div class="row">
+          <div class="field">
+            <label>Doctor ID</label><input id="doc_id" placeholder="DOC_001" />
+          </div>
+          <div class="field">
+            <label>PIN</label
+            ><input id="doc_pin" type="password" placeholder="••••" />
+          </div>
+          <div class="field" style="flex: 0 0 180px; align-self: flex-end">
+            <button id="btn_login">Login</button>
+          </div>
+        </div>
+        <span id="login_status" class="badge">Not logged in</span>
+      </div>
+
+      <!-- Patient Selection -->
+      <div id="sel_card" class="card" style="display: none">
+        <h2>Select Patient</h2>
+        <div class="row">
+          <div class="field">
+            <label>Patient ID</label>
+            <select id="patient_select"></select>
+          </div>
+          <div class="field" style="flex: 0 0 200px; align-self: flex-end">
+            <button id="btn_start">Start Monitoring</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monitoring Panel -->
+      <div id="monitor_card" class="card" style="display: none">
+        <h2>Live Patient Vitals</h2>
+        <p class="small">Select which vitals you want to monitor:</p>
+        <div class="row">
+          <label
+            ><input
+              type="checkbox"
+              class="stat_chk"
+              value="heart_rate"
+              checked
+            />
+            Heart Rate</label
+          >
+          <label
+            ><input type="checkbox" class="stat_chk" value="o2_sat" checked />
+            O₂ Saturation</label
+          >
+          <label
+            ><input type="checkbox" class="stat_chk" value="temp" />
+            Temperature</label
+          >
+          <label
+            ><input type="checkbox" class="stat_chk" value="bp" /> Blood
+            Pressure</label
+          >
+        </div>
+
+        <hr />
+
+        <div id="vitals_grid" class="grid cols-2"></div>
+      </div>
+    </div>
+
+    <script>
+      const API = "http://127.0.0.1:8000";
+      let SESSION = null,
+        activePatient = null;
+      const qs = (id) => document.getElementById(id);
+
+      // Navbar active state
+      (function () {
+        const file = location.pathname.split("/").pop() || "monitor.html";
+        document.querySelectorAll("#topnav a").forEach((a) => {
+          a.classList.toggle("active", a.getAttribute("href") === file);
+        });
+      })();
+
+      // Doctor Login
+      qs("btn_login").onclick = async () => {
+        const user = qs("doc_id").value.trim(),
+          pin = qs("doc_pin").value.trim();
+        if (!user || !pin) return alert("Enter ID and PIN");
+        const r = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: user, pin }),
+        });
+        if (!r.ok) return alert("Invalid credentials");
+        SESSION = await r.json();
+        qs("login_status").textContent = `Logged in as ${SESSION.user.name}`;
+        qs("sel_card").style.display = "block";
+
+        // Load patient list
+        const list = await fetch(`${API}/patients`).then((r) => r.json());
+        const sel = qs("patient_select");
+        sel.innerHTML = list
+          .map(
+            (p) =>
+              `<option value="${p.user_id}">${p.user_id} — ${
+                p.name || "Unnamed"
+              }</option>`
+          )
+          .join("");
+      };
+
+      // Start Monitoring
+      qs("btn_start").onclick = () => {
+        activePatient = qs("patient_select").value;
+        if (!activePatient) return alert("Select a patient");
+        qs("monitor_card").style.display = "block";
+        startMonitoring();
+      };
+
+      // IoT mock data stream
+      function random(min, max) {
+        return Math.round(min + Math.random() * (max - min));
+      }
+      function mockIoTData() {
+        return {
+          heart_rate: random(60, 110),
+          o2_sat: random(92, 100),
+          temp: (36 + Math.random() * 1.5).toFixed(1),
+          bp: `${random(100, 130)}/${random(70, 90)}`,
+        };
+      }
+
+      function renderVitals(data) {
+        const grid = qs("vitals_grid");
+        const selected = [
+          ...document.querySelectorAll(".stat_chk:checked"),
+        ].map((c) => c.value);
+        grid.innerHTML = selected
+          .map((stat) => {
+            const label = {
+              heart_rate: "❤️ Heart Rate (bpm)",
+              o2_sat: "🫁 O₂ Saturation (%)",
+              temp: "🌡️ Temperature (°C)",
+              bp: "🩸 Blood Pressure (mmHg)",
+            }[stat];
+            const val = data[stat];
+            return `<div class="card" style="text-align:center">
+              <h3 style="color:var(--accent);margin:0">${label}</h3>
+              <h1 style="margin:6px 0">${val}</h1>
+              <p class="small">Updated ${new Date().toLocaleTimeString()}</p>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function startMonitoring() {
+        setInterval(() => {
+          const data = mockIoTData();
+          renderVitals(data);
+          // later: replace with fetch(`${API}/iot/latest?patient=${activePatient}`)
+        }, 3000);
+      }
+    </script>
+  </body>
+</html>
