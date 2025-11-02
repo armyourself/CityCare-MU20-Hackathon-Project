@@ -1,22 +1,103 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CityCare — Patient Monitor</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CityCare — Monitor</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <body>
+<style>
+:root {
+  --border:#1e2a44;
+  --bg:#0b1220;
+  --card:#0f1830;
+  --ink:#e7eefc;
+  --muted:#9cc0ff;
+  --accent:#2483ff;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif;
+}
+
+/* --- Header --- */
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 14px;
+  border-bottom:1px solid var(--accent);
+  background:#0d1730;
+  position:sticky;
+  top:0;
+  z-index:20;
+  height:48px;
+}
+header h1{
+  margin:0;
+  font-size:16px;
+  color:var(--accent);
+  line-height:1;
+}
+
+/* --- Navbar --- */
+.nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.nav a{
+  color:#cfe0ff;
+  text-decoration:none;
+  margin:0 4px;
+  padding:4px 8px;
+  border-radius:8px;
+}
+.nav a.active,
+.nav a:hover{
+  background:#142243;
+}
+
+/* --- Login Row (force horizontal) --- */
+header .row{
+  display:flex;
+  flex-wrap:nowrap !important;
+  align-items:center;
+  gap:6px;
+}
+header input,
+header button{
+  padding:6px 8px;
+  border:1px solid #24345f;
+  border-radius:8px;
+  background:#0c1430;
+  color:var(--ink);
+  font-size:13px;
+}
+header button{
+  cursor:pointer;
+  background:var(--accent);
+  border:none;
+  color:white;
+}
+</style>
+
 <header>
   <h1>🏥 CityCare — Indore</h1>
   <nav class="nav" id="topnav">
-    <a href="index.html"    data-page="index.html">Home</a>
-    <a href="map.html"      data-page="map.html">Map</a>
+    <a href="index.html" data-page="index.html">Home</a>
+    <a href="map.html" data-page="map.html">Map</a>
     <a href="patients.html" data-page="patients.html">Patients</a>
     <a href="schedule.html" data-page="schedule.html">Scheduling</a>
-    <a href="sharing.html"  data-page="sharing.html">Data Sharing</a>
-    <a href="alerts.html"   data-page="alerts.html">Alerts</a>
-    <a href="monitor.html"  data-page="monitor.html">Monitor</a>
+    <a href="sharing.html" data-page="sharing.html">Data Sharing</a>
+    <a href="alerts.html" data-page="alerts.html">Alerts</a>
+    <a href="monitor.html" data-page="monitor.html">Monitor</a>
   </nav>
   <div class="row">
     <input id="user_id" placeholder="User (USR_ADM_001)">
@@ -25,113 +106,66 @@
   </div>
 </header>
 
+
+<!-- MAIN CONTENT -->
 <div class="main">
-  <!-- Doctor login -->
-  <div class="card">
-    <h2>Doctor Login</h2>
+
+  <!-- Doctor Login -->
+  <div class="card" id="doctor_login">
+    <h2 style="margin:6px 0;color:var(--accent)">Doctor Login</h2>
     <div class="row">
-      <input id="doc_id" placeholder="Doctor ID (e.g. DOC_001)" style="min-width:220px">
-      <input id="doc_pin" type="password" placeholder="PIN (e.g. 2222)" style="min-width:150px">
-      <button id="login_btn">Login</button>
-      <span id="login_status" class="badge">Not logged in</span>
+      <input id="doc_user" placeholder="Doctor ID">
+      <input id="doc_pin" type="password" placeholder="PIN">
+      <button id="btn_doc_login">Login</button>
     </div>
   </div>
 
-  <!-- Select patient -->
-  <div id="patient_select_card" class="card" style="display:none">
-    <h2>Select Patient to Monitor</h2>
-    <div class="row">
-      <input id="patient_id" placeholder="Patient ID (e.g. PAT_001)">
-      <button id="load_btn">Load Patient</button>
-      <span id="patient_status" class="badge">—</span>
-    </div>
-  </div>
+  <!-- Monitoring Controls -->
+  <div class="card" id="monitor_section" style="display:none">
+    <h2 style="margin:6px 0;color:var(--accent)">Patient Monitoring</h2>
+    <p class="small">Select a patient and vital stat to monitor in real time.</p>
 
-  <!-- Monitoring view -->
-  <div id="monitor_card" class="card" style="display:none">
-    <h2>Real-Time Monitoring</h2>
     <div class="row">
-      <label>Select Stat</label>
+      <select id="patient_select"></select>
       <select id="stat_select">
         <option value="heart_rate">Heart Rate</option>
         <option value="o2">O₂ Saturation</option>
-        <option value="temperature">Body Temperature</option>
+        <option value="temperature">Temperature</option>
       </select>
+      <button id="btn_start">Start Monitoring</button>
     </div>
-    <div id="monitor_display" style="margin-top:20px;font-size:26px;font-weight:bold;text-align:center;">
-      Waiting for sensor data...
+
+    <div class="card" style="margin-top:16px;">
+      <h3 style="margin:6px 0;color:var(--accent)">Live Reading</h3>
+      <div id="monitor_title" class="small" style="color:var(--muted)">—</div>
+      <div id="live_value" style="font-size:36px;font-weight:bold;color:var(--accent);margin:8px 0">--</div>
+      <canvas id="chart" height="120"></canvas>
     </div>
   </div>
+
 </div>
 
-<footer class="small" style="text-align:center;margin:24px 0;color:#9cc0ff">
-  © 2025 CityCare Project — Monitoring Module
-</footer>
+<div id="toast" class="toast"></div>
 
-<script src="common.js"></script>
+<!-- 🧠 SCRIPTS -->
+<script src="monitor.js"></script>
 <script>
-const API = "http://127.0.0.1:8000"; // your backend
+  // Navbar highlight
+  (function(){
+    const file = location.pathname.split("/").pop() || "monitor.html";
+    document.querySelectorAll('#topnav a').forEach(a=>{
+      if (a.dataset.page === file) a.classList.add('active');
+      else a.classList.remove('active');
+    });
+  })();
 
-const qs = (id)=>document.getElementById(id);
-
-let session = { doctor:null, patient:null, stat:'heart_rate' };
-
-// doctor login
-qs('login_btn').onclick = async ()=>{
-  const id = qs('doc_id').value.trim();
-  const pin = qs('doc_pin').value.trim();
-  if(!id || !pin){ alert("Enter doctor ID and PIN"); return; }
-  const ok = (id.startsWith('DOC_') && pin === '2222'); // demo rule
-  if(ok){
-    session.doctor = id;
-    qs('login_status').textContent = `Logged in as ${id}`;
-    qs('patient_select_card').style.display = '';
-  } else {
-    alert("Invalid login");
-  }
-};
-
-// load patient for monitoring
-qs('load_btn').onclick = async ()=>{
-  const pid = qs('patient_id').value.trim();
-  if(!pid){ alert("Enter patient ID"); return; }
-  session.patient = pid;
-  qs('patient_status').textContent = `Monitoring ${pid}`;
-  qs('monitor_card').style.display = '';
-  startMonitoring();
-};
-
-// stat selection
-qs('stat_select').onchange = ()=>{
-  session.stat = qs('stat_select').value;
-  startMonitoring();
-};
-
-// mock IoT sensor connection
-function startMonitoring(){
-  const display = qs('monitor_display');
-  clearInterval(window.sensorLoop);
-  window.sensorLoop = setInterval(async ()=>{
-    // simulate getting data from an IoT device API
-    // In real deployment, fetch from a microcontroller endpoint:
-    // const r = await fetch(`http://sensor.local/api/${session.patient}/${session.stat}`);
-    // const data = await r.json();
-
-    let value;
-    if(session.stat === 'heart_rate') value = Math.floor(70 + Math.random()*30) + ' bpm';
-    if(session.stat === 'o2') value = (95 + Math.random()*4).toFixed(1) + '%';
-    if(session.stat === 'temperature') value = (36 + Math.random()*1.5).toFixed(1) + ' °C';
-
-    display.textContent = `${session.stat.replace('_',' ').toUpperCase()}: ${value}`;
-  }, 2000);
-}
-// header auto-hide
-const header = document.querySelector('header');
-document.addEventListener('mousemove', e => {
-  if (e.clientY < 50) header.classList.add('visible');
-  else header.classList.remove('visible');
-});
-
+  // Floating navbar visibility
+  const header = document.querySelector('header');
+  document.addEventListener('mousemove', e => {
+    if (e.clientY < 50) header.classList.add('visible');
+    else header.classList.remove('visible');
+  });
 </script>
+
 </body>
 </html>

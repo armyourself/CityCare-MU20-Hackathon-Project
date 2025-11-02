@@ -1,189 +1,380 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CityCare — Smart Scheduling</title>
-<style>
-:root{--border:#1e2a44;--bg:#0b1220;--card:#0f1830;--ink:#e7eefc;--muted:#9cc0ff;--accent:#2483ff}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
-header h1{margin:0;font-size:18px;color:var(--accent)}
-.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
-.nav a.active,.nav a:hover{background:#142243}
-.main{max-width:1100px;margin:16px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-label{display:block;margin-bottom:4px;font-size:13px;color:var(--muted)}
-input,select,textarea,button{width:100%;padding:10px;border:1px solid #24345f;border-radius:8px;background:#0c1430;color:var(--ink)}
-button{cursor:pointer;background:var(--accent);border:none}
-textarea{resize:vertical;min-height:60px}
-.row{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}
-.field{flex:1 1 240px;display:flex;flex-direction:column;gap:6px}
-h2{color:var(--accent);margin:6px 0}
-.small{font-size:12px;color:var(--muted)}
-.badge{display:inline-block;padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:#142243;color:#bcd0ff;font-size:12px}
-</style>
-</head><body>
-<header>
-  <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav" id="topnav">
-    <a href="index.html"    data-page="index.html">Home</a>
-    <a href="map.html"      data-page="map.html">Map</a>
-    <a href="patients.html" data-page="patients.html">Patients</a>
-    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
-    <a href="sharing.html"  data-page="sharing.html">Data Sharing</a>
-    <a href="alerts.html"   data-page="alerts.html">Alerts</a>
-    <a href="monitor.html"  data-page="monitor.html">Monitor</a>
-  </nav>
-  <div class="row">
-    <input id="user_id" placeholder="User (USR_ADM_001)">
-    <input id="pin" placeholder="PIN">
-    <button id="btn_login">Login</button>
-  </div>
-</header>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CityCare — Smart Scheduling</title>
+    <style>
+      :root {
+        --border: #1e2a44;
+        --bg: #0b1220;
+        --card: #0f1830;
+        --ink: #e7eefc;
+        --muted: #9cc0ff;
+        --accent: #2483ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial,
+          sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--accent);
+        background: #0d1730;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--accent);
+      }
+      /* --- Navbar --- */
+.nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.nav a{
+  color:#cfe0ff;
+  text-decoration:none;
+  margin:0 4px;
+  padding:4px 8px;
+  border-radius:8px;
+}
+.nav a.active,
+.nav a:hover{
+  background:#142243;
+}
 
-<div class="main">
+/* --- Login Row (force horizontal) --- */
+header .row{
+  display:flex;
+  flex-wrap:nowrap !important;
+  align-items:center;
+  gap:6px;
+}
+header input,
+header button{
+  padding:6px 8px;
+  border:1px solid #24345f;
+  border-radius:8px;
+  background:#0c1430;
+  color:var(--ink);
+  font-size:13px;
+}
+header button{
+  cursor:pointer;
+  background:var(--accent);
+  border:none;
+  color:white;
+}
+      .main {
+        max-width: 1100px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      label {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      input,
+      select,
+      textarea,
+      button {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #24345f;
+        border-radius: 8px;
+        background: #0c1430;
+        color: var(--ink);
+      }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+      }
+      textarea {
+        resize: vertical;
+        min-height: 60px;
+      }
+      .row {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin: 10px 0;
+      }
+      .field {
+        flex: 1 1 240px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      h2 {
+        color: var(--accent);
+        margin: 6px 0;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #142243;
+        color: #bcd0ff;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏥 CityCare — Indore</h1>
+      <nav class="nav">
+        <a class="active" href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="patients.html">Patients</a>
+        <a href="schedule.html">Scheduling</a>
+        <a href="sharing.html">Data Sharing</a>
+        <a href="alerts.html">Alerts</a>
+        <a href="monitor.html">Monitor</a>
+      </nav>
+      <div class="row">
+        <input id="user_id" placeholder="User (USR_PAT_001)" /><input
+          id="pin"
+          placeholder="PIN"
+        /><button id="btn_login">Login</button>
+      </div>
+    </header>
 
-  <!-- BOOK APPOINTMENT (Patient uses PatientID + DoctorID) -->
-  <div class="card">
-    <h2>Book Appointment</h2>
-    <p class="small">Patients schedule visits by selecting a doctor. Demo IDs: <code>PAT_001</code>, <code>DOC_001</code>.</p>
+    <div class="main">
+      <!-- BOOK APPOINTMENT (Patient uses PatientID + DoctorID) -->
+      <div class="card">
+        <h2>Book Appointment</h2>
+        <p class="small">
+          Patients schedule visits by selecting a doctor. Demo IDs:
+          <code>PAT_001</code>, <code>DOC_001</code>.
+        </p>
 
-    <div class="row">
-      <div class="field"><label for="patient_id">Patient ID</label><input id="patient_id" placeholder="PAT_001"></div>
-      <div class="field"><label for="doctor_id">Doctor ID</label><input id="doctor_id" placeholder="DOC_001"></div>
-    </div>
+        <div class="row">
+          <div class="field">
+            <label for="patient_id">Patient ID</label
+            ><input id="patient_id" placeholder="PAT_001" />
+          </div>
+          <div class="field">
+            <label for="doctor_id">Doctor ID</label
+            ><input id="doctor_id" placeholder="DOC_001" />
+          </div>
+        </div>
 
-    <div class="row">
-      <div class="field"><label for="date">Date</label><input id="date" type="date"></div>
-      <div class="field"><label for="time">Time</label><input id="time" type="time"></div>
-      <div class="field"><label for="type">Appointment Type</label>
-        <select id="type">
-          <option>Consultation</option>
-          <option>Follow-up</option>
-          <option>Lab Test</option>
-          <option>Emergency</option>
-        </select>
+        <div class="row">
+          <div class="field">
+            <label for="date">Date</label><input id="date" type="date" />
+          </div>
+          <div class="field">
+            <label for="time">Time</label><input id="time" type="time" />
+          </div>
+          <div class="field">
+            <label for="type">Appointment Type</label>
+            <select id="type">
+              <option>Consultation</option>
+              <option>Follow-up</option>
+              <option>Lab Test</option>
+              <option>Emergency</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field" style="flex: 1 1 100%">
+            <label for="notes">Notes</label>
+            <textarea
+              id="notes"
+              placeholder="Optional: symptoms or reason for visit..."
+            ></textarea>
+          </div>
+        </div>
+
+        <button id="btn_book">Book Appointment</button>
+        <div id="status" class="small" style="margin-top: 8px"></div>
+      </div>
+
+      <!-- DOCTOR VIEW: see appointments booked with me -->
+      <div class="card">
+        <h2>Doctor Schedule Viewer</h2>
+        <p class="small">
+          Doctors can log in and see all upcoming appointments booked **with
+          them**.
+        </p>
+        <div class="row">
+          <div class="field">
+            <label for="v_user">Doctor User ID</label
+            ><input id="v_user" placeholder="USR_DOC_001" />
+          </div>
+          <div class="field" style="max-width: 220px">
+            <label for="v_pin">PIN</label
+            ><input id="v_pin" type="password" placeholder="2222" />
+          </div>
+          <div class="field" style="max-width: 160px; align-self: flex-end">
+            <button id="btn_vlog">View My Schedule</button>
+          </div>
+        </div>
+        <div id="v_status" class="small" style="margin-top: 6px"></div>
+        <div id="doctor_list" class="small" style="margin-top: 10px">—</div>
+      </div>
+
+      <!-- GLOBAL LIST (optional demo) -->
+      <div class="card">
+        <h2>All Upcoming Appointments (Demo)</h2>
+        <div id="appointments" class="small">No appointments yet.</div>
       </div>
     </div>
 
-    <div class="row">
-      <div class="field" style="flex:1 1 100%">
-        <label for="notes">Notes</label>
-        <textarea id="notes" placeholder="Optional: symptoms or reason for visit..."></textarea>
-      </div>
-    </div>
+    <script>
+      // ===== Helpers for roles & PINs (demo rules) =====
+      function roleFromUser(u) {
+        if (!u) return null;
+        if (u.startsWith("USR_DOC_")) return "doctor";
+        if (u.startsWith("USR_PAT_")) return "patient";
+        if (u.startsWith("USR_PHA_")) return "pharmacist";
+        if (u.startsWith("USR_NUR_")) return "nurse";
+        if (u.startsWith("USR_ADM_")) return "admin";
+        return "unknown";
+      }
+      function pinOk(u, p) {
+        const r = roleFromUser(u);
+        if (r === "doctor") return p === "2222";
+        if (r === "patient") return p === "1111";
+        if (r === "nurse") return p === "3333";
+        if (r === "pharmacist") return p === "4444";
+        if (r === "admin") return p === "5555";
+        return false;
+      }
 
-    <button id="btn_book">Book Appointment</button>
-    <div id="status" class="small" style="margin-top:8px"></div>
-  </div>
+      // ===== Storage (demo: localStorage) =====
+      let appts = JSON.parse(localStorage.getItem("appointments") || "[]");
 
-  <!-- DOCTOR VIEW: see appointments booked with me -->
-  <div class="card">
-    <h2>Doctor Schedule Viewer</h2>
-    <p class="small">Doctors can log in and see all upcoming appointments booked **with them**.</p>
-    <div class="row">
-      <div class="field"><label for="v_user">Doctor User ID</label><input id="v_user" placeholder="USR_DOC_001"></div>
-      <div class="field" style="max-width:220px"><label for="v_pin">PIN</label><input id="v_pin" type="password" placeholder="2222"></div>
-      <div class="field" style="max-width:160px;align-self:flex-end"><button id="btn_vlog">View My Schedule</button></div>
-    </div>
-    <div id="v_status" class="small" style="margin-top:6px"></div>
-    <div id="doctor_list" class="small" style="margin-top:10px">—</div>
-  </div>
+      // ===== Elements =====
+      const elPid = document.getElementById("patient_id");
+      const elDid = document.getElementById("doctor_id");
+      const elDate = document.getElementById("date");
+      const elTime = document.getElementById("time");
+      const elType = document.getElementById("type");
+      const elNotes = document.getElementById("notes");
+      const elStatus = document.getElementById("status");
+      const elAllList = document.getElementById("appointments");
 
-  <!-- GLOBAL LIST (optional demo) -->
-  <div class="card">
-    <h2>All Upcoming Appointments (Demo)</h2>
-    <div id="appointments" class="small">No appointments yet.</div>
-  </div>
+      const elVUser = document.getElementById("v_user");
+      const elVPin = document.getElementById("v_pin");
+      const elVBtn = document.getElementById("btn_vlog");
+      const elVStatus = document.getElementById("v_status");
+      const elDocList = document.getElementById("doctor_list");
 
-</div>
-
-<script>
-// ===== Helpers for roles & PINs (demo rules) =====
-function roleFromUser(u){
-  if(!u) return null;
-  if(u.startsWith("USR_DOC_")) return "doctor";
-  if(u.startsWith("USR_PAT_")) return "patient";
-  if(u.startsWith("USR_PHA_")) return "pharmacist";
-  if(u.startsWith("USR_NUR_")) return "nurse";
-  if(u.startsWith("USR_ADM_")) return "admin";
-  return "unknown";
-}
-function pinOk(u,p){
-  const r=roleFromUser(u);
-  if(r==="doctor") return p==="2222";
-  if(r==="patient") return p==="1111";
-  if(r==="nurse") return p==="3333";
-  if(r==="pharmacist") return p==="4444";
-  if(r==="admin") return p==="5555";
-  return false;
-}
-
-// ===== Storage (demo: localStorage) =====
-let appts = JSON.parse(localStorage.getItem("appointments")||"[]");
-
-// ===== Elements =====
-const elPid=document.getElementById('patient_id');
-const elDid=document.getElementById('doctor_id');
-const elDate=document.getElementById('date');
-const elTime=document.getElementById('time');
-const elType=document.getElementById('type');
-const elNotes=document.getElementById('notes');
-const elStatus=document.getElementById('status');
-const elAllList=document.getElementById('appointments');
-
-const elVUser=document.getElementById('v_user');
-const elVPin=document.getElementById('v_pin');
-const elVBtn=document.getElementById('btn_vlog');
-const elVStatus=document.getElementById('v_status');
-const elDocList=document.getElementById('doctor_list');
-
-// ===== Renderers =====
-function fmt(a){ return a.toString().padStart(2,'0'); }
-function toDT(a){ return new Date(a.date + 'T' + a.time); }
-function renderAll(){
-  if(appts.length===0){ elAllList.textContent="No appointments yet."; return; }
-  const list = [...appts].sort((a,b)=>toDT(a)-toDT(b));
-  elAllList.innerHTML = list.map(a=>`
+      // ===== Renderers =====
+      function fmt(a) {
+        return a.toString().padStart(2, "0");
+      }
+      function toDT(a) {
+        return new Date(a.date + "T" + a.time);
+      }
+      function renderAll() {
+        if (appts.length === 0) {
+          elAllList.textContent = "No appointments yet.";
+          return;
+        }
+        const list = [...appts].sort((a, b) => toDT(a) - toDT(b));
+        elAllList.innerHTML = list
+          .map(
+            (a) => `
     <div style="margin-bottom:10px;border-bottom:1px solid #24345f;padding-bottom:6px">
-      <b>${a.patient}</b> → ${a.doctor} | ${a.date} ${a.time} <span class="badge">${a.type}</span>
-      <div class="small">${a.notes||""}</div>
-    </div>`).join('');
-}
-renderAll();
+      <b>${a.patient}</b> → ${a.doctor} | ${a.date} ${
+              a.time
+            } <span class="badge">${a.type}</span>
+      <div class="small">${a.notes || ""}</div>
+    </div>`
+          )
+          .join("");
+      }
+      renderAll();
 
-// ===== Booking (Patient) =====
-document.getElementById('btn_book').onclick=()=>{
-  const p=elPid.value.trim(), d=elDid.value.trim(), da=elDate.value, t=elTime.value;
-  if(!p||!d||!da||!t) return alert("Fill all required fields.");
-  // Ensure doctor id looks like DOC_***
-  if(!/^DOC_\w+$/i.test(d)) return alert("Doctor ID should look like DOC_001");
-  const rec={patient:p, doctor:d, date:da, time:t, type:elType.value, notes:elNotes.value.trim()};
-  appts.push(rec);
-  localStorage.setItem("appointments", JSON.stringify(appts));
-  elStatus.textContent="✅ Appointment booked successfully.";
-  renderAll();
-};
+      // ===== Booking (Patient) =====
+      document.getElementById("btn_book").onclick = () => {
+        const p = elPid.value.trim(),
+          d = elDid.value.trim(),
+          da = elDate.value,
+          t = elTime.value;
+        if (!p || !d || !da || !t) return alert("Fill all required fields.");
+        // Ensure doctor id looks like DOC_***
+        if (!/^DOC_\w+$/i.test(d))
+          return alert("Doctor ID should look like DOC_001");
+        const rec = {
+          patient: p,
+          doctor: d,
+          date: da,
+          time: t,
+          type: elType.value,
+          notes: elNotes.value.trim(),
+        };
+        appts.push(rec);
+        localStorage.setItem("appointments", JSON.stringify(appts));
+        elStatus.textContent = "✅ Appointment booked successfully.";
+        renderAll();
+      };
 
-// ===== Doctor view (filtered to this doctor) =====
-elVBtn.onclick=()=>{
-  const u=elVUser.value.trim(), p=elVPin.value.trim();
-  if(!u||!p) return alert("Enter Doctor User ID and PIN");
-  if(roleFromUser(u)!=="doctor") return alert("User must be a doctor (e.g., USR_DOC_001).");
-  if(!pinOk(u,p)) return alert("Invalid doctor PIN (demo: 2222).");
-  elVStatus.textContent=`✅ Logged in as ${u}`;
+      // ===== Doctor view (filtered to this doctor) =====
+      elVBtn.onclick = () => {
+        const u = elVUser.value.trim(),
+          p = elVPin.value.trim();
+        if (!u || !p) return alert("Enter Doctor User ID and PIN");
+        if (roleFromUser(u) !== "doctor")
+          return alert("User must be a doctor (e.g., USR_DOC_001).");
+        if (!pinOk(u, p)) return alert("Invalid doctor PIN (demo: 2222).");
+        elVStatus.textContent = `✅ Logged in as ${u}`;
 
-  // Map USR_DOC_001 -> DOC_001 (link user account to doctor code)
-  const docCode = u.replace(/^USR_/, '');
+        // Map USR_DOC_001 -> DOC_001 (link user account to doctor code)
+        const docCode = u.replace(/^USR_/, "");
 
-  const mine = appts.filter(a=>a.doctor.toUpperCase()===docCode.toUpperCase())
-                    .sort((a,b)=>toDT(a)-toDT(b));
-  if(mine.length===0){ elDocList.textContent="No appointments booked with you yet."; return; }
+        const mine = appts
+          .filter((a) => a.doctor.toUpperCase() === docCode.toUpperCase())
+          .sort((a, b) => toDT(a) - toDT(b));
+        if (mine.length === 0) {
+          elDocList.textContent = "No appointments booked with you yet.";
+          return;
+        }
 
-  elDocList.innerHTML = mine.map(a=>`
+        elDocList.innerHTML = mine
+          .map(
+            (a) => `
     <div style="margin-bottom:10px;border-bottom:1px solid #24345f;padding-bottom:6px">
-      <b>${a.date} ${a.time}</b> — Patient <b>${a.patient}</b> <span class="badge">${a.type}</span>
-      <div class="small">${a.notes||""}</div>
-    </div>`).join('');
-};
-</script>
-</body></html>
+      <b>${a.date} ${a.time}</b> — Patient <b>${
+              a.patient
+            }</b> <span class="badge">${a.type}</span>
+      <div class="small">${a.notes || ""}</div>
+    </div>`
+          )
+          .join("");
+      };
+    </script>
+  </body>
+</html>

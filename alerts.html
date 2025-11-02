@@ -1,453 +1,988 @@
-<!DOCTYPE html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CityCare — Automatic Alerts (Medicine · Reports · Emergencies)</title>
-<style>
-:root{--border:#1e2a44;--bg:#0b1220;--card:#0f1830;--ink:#e7eefc;--muted:#9cc0ff;--accent:#2483ff}
-*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
-header h1{margin:0;font-size:18px;color:var(--accent)}
-.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
-.nav a.active,.nav a:hover{background:#142243}
-.main{max-width:1100px;margin:16px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:200px}
-label{font-size:12px;color:var(--muted)}
-input,select,textarea,button{padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
-textarea{min-height:80px;resize:vertical}
-button{cursor:pointer;background:var(--accent);border:none}
-button.secondary{background:#24345f}
-.badge{padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:#142243;color:#bcd0ff;font-size:12px}
-.grid{display:grid;grid-template-columns:1.2fr 0.9fr 1fr 0.9fr 0.6fr;gap:8px;align-items:center}
-.table{width:100%;border-collapse:separate;border-spacing:0 8px}
-.tr{background:#101a34;border:1px solid #213158;border-radius:10px}
-.th,.td{padding:10px}
-.th{font-size:12px;color:#9cc0ff}
-.controls{display:flex;gap:8px;flex-wrap:wrap}
-.hint{font-size:12px;color:#9cc0ff}
-hr.sep{border:0;border-top:1px solid #213158;margin:12px 0}
-small{color:#9cc0ff}
-.toggle{display:inline-flex;align-items:center;gap:8px}
-.toast{position:fixed;right:16px;bottom:16px;background:#102040;border:1px solid #294277;color:#e7eefc;padding:12px 14px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.4);z-index:9999;display:none}
-</style>
-</head><body>
-<header>
-  <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav" id="topnav">
-    <a href="index.html"    data-page="index.html">Home</a>
-    <a href="map.html"      data-page="map.html">Map</a>
-    <a href="patients.html" data-page="patients.html">Patients</a>
-    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
-    <a href="sharing.html"  data-page="sharing.html">Data Sharing</a>
-    <a href="alerts.html"   data-page="alerts.html">Alerts</a>
-    <a href="monitor.html"  data-page="monitor.html">Monitor</a>
-  </nav>
-  <div class="row">
-    <input id="user_id" placeholder="User (USR_ADM_001)">
-    <input id="pin" placeholder="PIN">
-    <button id="btn_login">Login</button>
-  </div>
-</header>
-
-<div class="main">
-  <!-- ENABLE SOUND & NOTIFICATIONS -->
-  <div class="card">
-    <h2 style="margin:6px 0;color:var(--accent)">Automatic Reminders</h2>
-    <p class="hint">Create rules once. The scheduler checks every 30s and fires reminders automatically.  
-    <b>Tip:</b> Click the button below once, so your browser allows sound + notifications.</p>
-    <div class="controls" style="margin:6px 0 12px">
-      <button id="btn_enable_av" class="secondary">🔔 Enable Sound & Notifications</button>
-      <span class="badge" id="perm_state">Notifications: unknown · Sound: locked</span>
-      <button id="btn_test" class="secondary">▶️ Test Alert</button>
-    </div>
-
-    <div class="row">
-      <div class="field">
-        <label for="r_type">Reminder Type</label>
-        <select id="r_type">
-          <option value="medicine">Medicine Dose</option>
-          <option value="report">Report Ready</option>
-          <option value="emergency">Emergency Watch (nearby incident)</option>
-        </select>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>
+      CityCare — Automatic Alerts (Medicine · Reports · Emergencies)
+    </title>
+    <style>
+      :root {
+        --border: #1e2a44;
+        --bg: #0b1220;
+        --card: #0f1830;
+        --ink: #e7eefc;
+        --muted: #9cc0ff;
+        --accent: #2483ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial,
+          sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--accent);
+        background: #0d1730;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--accent);
+      }
+      .nav a {
+        color: #cfe0ff;
+        text-decoration: none;
+        margin: 0 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+      }
+      .nav a.active,
+      .nav a:hover {
+        background: #142243;
+      }
+      .main {
+        max-width: 1100px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        flex: 1;
+        min-width: 200px;
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      select,
+      textarea,
+      button {
+        padding: 10px;
+        border: 1px solid #24345f;
+        border-radius: 10px;
+        background: #0c1430;
+        color: var(--ink);
+      }
+      textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+      button {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+      }
+      button.secondary {
+        background: #24345f;
+      }
+      .badge {
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #142243;
+        color: #bcd0ff;
+        font-size: 12px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1.2fr 0.9fr 1fr 0.9fr 0.6fr;
+        gap: 8px;
+        align-items: center;
+      }
+      .table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+      }
+      .tr {
+        background: #101a34;
+        border: 1px solid #213158;
+        border-radius: 10px;
+      }
+      .th,
+      .td {
+        padding: 10px;
+      }
+      .th {
+        font-size: 12px;
+        color: #9cc0ff;
+      }
+      .controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .hint {
+        font-size: 12px;
+        color: #9cc0ff;
+      }
+      hr.sep {
+        border: 0;
+        border-top: 1px solid #213158;
+        margin: 12px 0;
+      }
+      small {
+        color: #9cc0ff;
+      }
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .toast {
+        position: fixed;
+        right: 16px;
+        bottom: 16px;
+        background: #102040;
+        border: 1px solid #294277;
+        color: #e7eefc;
+        padding: 12px 14px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        z-index: 9999;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏥 CityCare — Indore</h1>
+      <nav class="nav">
+        <a class="active" href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="patients.html">Patients</a>
+        <a href="schedule.html">Scheduling</a>
+        <a href="sharing.html">Data Sharing</a>
+        <a href="alerts.html">Alerts</a>
+        <a href="monitor.html">Monitor</a>
+      </nav>
+      <div class="row">
+        <input id="user_id" placeholder="User (USR_PAT_001)" /><input
+          id="pin"
+          placeholder="PIN"
+        /><button id="btn_login">Login</button>
       </div>
-      <div class="field">
-        <label for="r_for">Patient / Target ID</label>
-        <input id="r_for" placeholder="e.g., PAT_001 or FACILITY_ID">
-      </div>
-      <div class="field" style="flex:0 0 220px">
-        <label>&nbsp;</label>
-        <div class="controls">
-          <button id="btn_save">Save Rule</button>
+    </header>
+
+    <div class="main">
+      <!-- ENABLE SOUND & NOTIFICATIONS -->
+      <div class="card">
+        <h2 style="margin: 6px 0; color: var(--accent)">Automatic Reminders</h2>
+        <p class="hint">
+          Create rules once. The scheduler checks every 30s and fires reminders
+          automatically. <b>Tip:</b> Click the button below once, so your
+          browser allows sound + notifications.
+        </p>
+        <div class="controls" style="margin: 6px 0 12px">
+          <button id="btn_enable_av" class="secondary">
+            🔔 Enable Sound & Notifications
+          </button>
+          <span class="badge" id="perm_state"
+            >Notifications: unknown · Sound: locked</span
+          >
+          <button id="btn_test" class="secondary">▶️ Test Alert</button>
         </div>
-      </div>
-    </div>
 
-    <!-- Medicine fields -->
-    <div id="box_medicine">
-      <div class="row">
-        <div class="field"><label for="med_name">Medicine</label><input id="med_name" placeholder="e.g., Metformin"></div>
-        <div class="field"><label for="med_dose">Dosage / Notes</label><input id="med_dose" placeholder="e.g., 500mg after meals"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label for="med_start">Start Date</label><input id="med_start" type="date"></div>
-        <div class="field"><label for="med_end">End Date (optional)</label><input id="med_end" type="date"></div>
-        <div class="field"><label>Times / day</label>
-          <div class="row" id="med_times_row" style="gap:6px">
-            <input type="time" class="med_time">
-            <input type="time" class="med_time">
-            <button id="add_time" class="secondary" style="flex:0 0 120px">+ Add time</button>
+        <div class="row">
+          <div class="field">
+            <label for="r_type">Reminder Type</label>
+            <select id="r_type">
+              <option value="medicine">Medicine Dose</option>
+              <option value="report">Report Ready</option>
+              <option value="emergency">
+                Emergency Watch (nearby incident)
+              </option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="r_for">Patient / Target ID</label>
+            <input id="r_for" placeholder="e.g., PAT_001 or FACILITY_ID" />
+          </div>
+          <div class="field" style="flex: 0 0 220px">
+            <label>&nbsp;</label>
+            <div class="controls">
+              <button id="btn_save">Save Rule</button>
+            </div>
           </div>
         </div>
-      </div>
-      <div class="row">
-        <div class="field" style="flex:1 1 100%">
-          <label>Days</label>
+
+        <!-- Medicine fields -->
+        <div id="box_medicine">
           <div class="row">
-            <label class="toggle"><input type="checkbox" class="dow" value="0" checked>Sun</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="1" checked>Mon</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="2" checked>Tue</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="3" checked>Wed</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="4" checked>Thu</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="5" checked>Fri</label>
-            <label class="toggle"><input type="checkbox" class="dow" value="6" checked>Sat</label>
+            <div class="field">
+              <label for="med_name">Medicine</label
+              ><input id="med_name" placeholder="e.g., Metformin" />
+            </div>
+            <div class="field">
+              <label for="med_dose">Dosage / Notes</label
+              ><input id="med_dose" placeholder="e.g., 500mg after meals" />
+            </div>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="med_start">Start Date</label
+              ><input id="med_start" type="date" />
+            </div>
+            <div class="field">
+              <label for="med_end">End Date (optional)</label
+              ><input id="med_end" type="date" />
+            </div>
+            <div class="field">
+              <label>Times / day</label>
+              <div class="row" id="med_times_row" style="gap: 6px">
+                <input type="time" class="med_time" />
+                <input type="time" class="med_time" />
+                <button id="add_time" class="secondary" style="flex: 0 0 120px">
+                  + Add time
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="field" style="flex: 1 1 100%">
+              <label>Days</label>
+              <div class="row">
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="0"
+                    checked
+                  />Sun</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="1"
+                    checked
+                  />Mon</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="2"
+                    checked
+                  />Tue</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="3"
+                    checked
+                  />Wed</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="4"
+                    checked
+                  />Thu</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="5"
+                    checked
+                  />Fri</label
+                >
+                <label class="toggle"
+                  ><input
+                    type="checkbox"
+                    class="dow"
+                    value="6"
+                    checked
+                  />Sat</label
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report fields -->
+        <div id="box_report" style="display: none">
+          <div class="row">
+            <div class="field">
+              <label for="rep_title">Report Name</label
+              ><input id="rep_title" placeholder="e.g., CBC, X-ray, MRI" />
+            </div>
+            <div class="field">
+              <label for="rep_due">Expected Ready At</label
+              ><input id="rep_due" type="datetime-local" />
+            </div>
+            <div class="field">
+              <label for="rep_before">Remind Before (minutes)</label
+              ><input id="rep_before" type="number" min="0" value="0" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Emergency Watch fields -->
+        <div id="box_emergency" style="display: none">
+          <p class="hint">
+            Triggers when a new <b>incident</b> marker appears within the radius
+            of this location (from your Map page).
+          </p>
+          <div class="row">
+            <div class="field">
+              <label for="em_label">Watch Label</label
+              ><input id="em_label" placeholder="e.g., Rajwada Watch" />
+            </div>
+            <div class="field">
+              <label for="em_lat">Latitude</label
+              ><input id="em_lat" placeholder="22.7196" />
+            </div>
+            <div class="field">
+              <label for="em_lon">Longitude</label
+              ><input id="em_lon" placeholder="75.8577" />
+            </div>
+            <div class="field">
+              <label for="em_radius">Radius (km)</label
+              ><input
+                id="em_radius"
+                type="number"
+                min="0.1"
+                step="0.1"
+                value="1.0"
+              />
+            </div>
+          </div>
+          <small
+            >Tip: Drop a temporary marker on
+            <a href="map.html" style="color: #9cc0ff">Map</a> and copy its
+            lat/lon.</small
+          >
+        </div>
+      </div>
+
+      <!-- ACTIVE RULES -->
+      <div class="card">
+        <h3 style="margin: 6px 0; color: var(--accent)">Active Rules</h3>
+        <div class="controls" style="margin-bottom: 8px">
+          <button id="btn_pause" class="secondary">Pause Scheduler</button>
+          <span class="badge" id="sched_state">Running</span>
+          <span class="badge" id="rule_count">0 rules</span>
+        </div>
+        <div class="table" id="tbl_rules">
+          <div class="tr grid" style="background: transparent; border: none">
+            <div class="th">Title / Target</div>
+            <div class="th">Type</div>
+            <div class="th">Window / Details</div>
+            <div class="th">Next Due</div>
+            <div class="th">Actions</div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Report fields -->
-    <div id="box_report" style="display:none">
-      <div class="row">
-        <div class="field"><label for="rep_title">Report Name</label><input id="rep_title" placeholder="e.g., CBC, X-ray, MRI"></div>
-        <div class="field"><label for="rep_due">Expected Ready At</label><input id="rep_due" type="datetime-local"></div>
-        <div class="field"><label for="rep_before">Remind Before (minutes)</label><input id="rep_before" type="number" min="0" value="0"></div>
+      <!-- FIRED LOG -->
+      <div class="card">
+        <h3 style="margin: 6px 0; color: var(--accent)">Fired Alerts</h3>
+        <div class="controls" style="margin-bottom: 8px">
+          <button id="btn_clear_log" class="secondary">Clear Log</button>
+          <span class="badge" id="log_count">0</span>
+        </div>
+        <div id="log_list"></div>
       </div>
     </div>
 
-    <!-- Emergency Watch fields -->
-    <div id="box_emergency" style="display:none">
-      <p class="hint">Triggers when a new <b>incident</b> marker appears within the radius of this location (from your Map page).</p>
-      <div class="row">
-        <div class="field"><label for="em_label">Watch Label</label><input id="em_label" placeholder="e.g., Rajwada Watch"></div>
-        <div class="field"><label for="em_lat">Latitude</label><input id="em_lat" placeholder="22.7196"></div>
-        <div class="field"><label for="em_lon">Longitude</label><input id="em_lon" placeholder="75.8577"></div>
-        <div class="field"><label for="em_radius">Radius (km)</label><input id="em_radius" type="number" min="0.1" step="0.1" value="1.0"></div>
-      </div>
-      <small>Tip: Drop a temporary marker on <a href="map.html" style="color:#9cc0ff">Map</a> and copy its lat/lon.</small>
-    </div>
-  </div>
+    <div id="toast" class="toast"></div>
 
-  <!-- ACTIVE RULES -->
-  <div class="card">
-    <h3 style="margin:6px 0;color:var(--accent)">Active Rules</h3>
-    <div class="controls" style="margin-bottom:8px">
-      <button id="btn_pause" class="secondary">Pause Scheduler</button>
-      <span class="badge" id="sched_state">Running</span>
-      <span class="badge" id="rule_count">0 rules</span>
-    </div>
-    <div class="table" id="tbl_rules">
-      <div class="tr grid" style="background:transparent;border:none">
-        <div class="th">Title / Target</div>
-        <div class="th">Type</div>
-        <div class="th">Window / Details</div>
-        <div class="th">Next Due</div>
-        <div class="th">Actions</div>
-      </div>
-    </div>
-  </div>
+    <script>
+      // Navbar highlight
+      (function () {
+        const file = location.pathname.split("/").pop() || "alerts.html";
+        document.querySelectorAll("#topnav a").forEach((a) => {
+          if (a.dataset.page === file) a.classList.add("active");
+          else a.classList.remove("active");
+        });
+      })();
 
-  <!-- FIRED LOG -->
-  <div class="card">
-    <h3 style="margin:6px 0;color:var(--accent)">Fired Alerts</h3>
-    <div class="controls" style="margin-bottom:8px">
-      <button id="btn_clear_log" class="secondary">Clear Log</button>
-      <span class="badge" id="log_count">0</span>
-    </div>
-    <div id="log_list"></div>
-  </div>
-</div>
+      // Optional auth
+      const API = "http://127.0.0.1:8000";
+      let SESSION = null;
+      btn_login.onclick = async () => {
+        const u = user_id.value.trim(),
+          p = pin.value.trim();
+        if (!u || !p) return alert("Enter user & PIN");
+        try {
+          const r = await fetch(`${API}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ user_id: u, pin: p }),
+          });
+          if (!r.ok) return alert("Invalid PIN");
+          SESSION = await r.json();
+          alert(`Logged in as ${SESSION.user.name} (${SESSION.user.role})`);
+        } catch {
+          alert("Auth server not reachable; continuing in local mode.");
+        }
+      };
 
-<div id="toast" class="toast"></div>
+      // ---------- SOUND + NOTIFICATIONS ----------
+      let audioCtx = null,
+        soundUnlocked = false;
+      function ensureAudio() {
+        if (soundUnlocked && audioCtx) return true;
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          if (audioCtx.state === "suspended") audioCtx.resume();
+          soundUnlocked = true;
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+      async function ensureNotifications() {
+        try {
+          if (!("Notification" in window)) return "unsupported";
+          if (Notification.permission === "granted") return "granted";
+          const p = await Notification.requestPermission();
+          return p;
+        } catch {
+          return "error";
+        }
+      }
+      function updatePermBadge() {
+        const n =
+          "Notification" in window ? Notification.permission : "unsupported";
+        perm_state.textContent = `Notifications: ${n} · Sound: ${
+          soundUnlocked ? "enabled" : "locked"
+        }`;
+      }
+      btn_enable_av.onclick = async () => {
+        const a = ensureAudio();
+        const n = await ensureNotifications();
+        updatePermBadge();
+        if (a) playChime("test");
+        showToast("Sound & notifications ready.");
+      };
+      btn_test.onclick = () => {
+        fireNow(
+          "Test Alert",
+          "This is how your alerts will look & sound.",
+          "test",
+          "YOU"
+        );
+      };
 
-<script>
-// Navbar highlight
-(function(){
-  const file = location.pathname.split("/").pop() || "alerts.html";
-  document.querySelectorAll('#topnav a').forEach(a=>{
-    if (a.dataset.page === file) a.classList.add('active'); else a.classList.remove('active');
-  });
-})();
+      // WebAudio chimes per kind
+      function playChime(kind) {
+        if (!ensureAudio()) return;
+        const ctx = audioCtx,
+          now = ctx.currentTime;
+        const o = ctx.createOscillator(),
+          g = ctx.createGain();
+        o.connect(g).connect(ctx.destination);
+        let seq;
+        if (kind === "medicine")
+          seq = [
+            [880, 0.0, 0.15],
+            [0, 0.12, 0],
+            [988, 0.15, 0.15],
+            [0, 0.3, 0],
+          ];
+        else if (kind === "report")
+          seq = [
+            [659, 0.0, 0.18],
+            [0, 0.18, 0],
+            [659, 0.2, 0.18],
+          ];
+        else if (kind === "emergency")
+          seq = [
+            [523, 0.0, 0.12],
+            [784, 0.12, 0.12],
+            [523, 0.24, 0.12],
+            [784, 0.36, 0.3],
+          ];
+        else
+          seq = [
+            [700, 0.0, 0.25],
+            [0, 0.25, 0],
+          ];
+        g.gain.setValueAtTime(0, now);
+        let t = now;
+        seq.forEach(([freq, offset, dur]) => {
+          if (freq > 0) {
+            o.frequency.setValueAtTime(freq, now + offset);
+            g.gain.linearRampToValueAtTime(0.9, now + offset + 0.01);
+            g.gain.linearRampToValueAtTime(0.0, now + offset + dur);
+          }
+        });
+        o.start(now);
+        o.stop(now + Math.max(...seq.map((s) => s[1] + s[2])) + 0.02);
+      }
 
-// Optional auth
-const API="http://127.0.0.1:8000"; let SESSION=null;
-btn_login.onclick=async()=>{
-  const u=user_id.value.trim(), p=pin.value.trim();
-  if(!u||!p) return alert("Enter user & PIN");
-  try{
-    const r=await fetch(`${API}/auth/login`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({user_id:u,pin:p})});
-    if(!r.ok) return alert("Invalid PIN");
-    SESSION=await r.json(); alert(`Logged in as ${SESSION.user.name} (${SESSION.user.role})`);
-  }catch{ alert("Auth server not reachable; continuing in local mode."); }
-};
+      // Browser Notification + vibration + title flash
+      function showNotification(title, body) {
+        try {
+          if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+          ) {
+            new Notification(title, { body });
+          }
+        } catch {}
+        if ("vibrate" in navigator) {
+          try {
+            navigator.vibrate([200, 100, 200]);
+          } catch {}
+        }
+        flashTitle(title);
+      }
+      let flashTimer = null,
+        baseTitle = document.title;
+      function flashTitle(msg) {
+        if (flashTimer) clearInterval(flashTimer);
+        let on = false;
+        let count = 0;
+        flashTimer = setInterval(() => {
+          document.title = on ? `🔔 ${msg}` : baseTitle;
+          on = !on;
+          count++;
+          if (!document.hidden || count > 20) {
+            clearInterval(flashTimer);
+            document.title = baseTitle;
+          }
+        }, 600);
+      }
+      function showToast(msg) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.style.display = "block";
+        setTimeout(() => {
+          el.style.display = "none";
+        }, 3000);
+      }
+      updatePermBadge();
 
-// ---------- SOUND + NOTIFICATIONS ----------
-let audioCtx=null, soundUnlocked=false;
-function ensureAudio(){
-  if(soundUnlocked && audioCtx) return true;
-  try{
-    audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-    if(audioCtx.state==='suspended') audioCtx.resume();
-    soundUnlocked=true; return true;
-  }catch(e){ return false; }
-}
-async function ensureNotifications(){
-  try{
-    if(!('Notification' in window)) return 'unsupported';
-    if(Notification.permission==='granted') return 'granted';
-    const p=await Notification.requestPermission();
-    return p;
-  }catch{ return 'error'; }
-}
-function updatePermBadge(){
-  const n = ('Notification' in window) ? Notification.permission : 'unsupported';
-  perm_state.textContent = `Notifications: ${n} · Sound: ${soundUnlocked?'enabled':'locked'}`;
-}
-btn_enable_av.onclick=async()=>{
-  const a=ensureAudio();
-  const n=await ensureNotifications();
-  updatePermBadge();
-  if(a) playChime('test');
-  showToast('Sound & notifications ready.');
-};
-btn_test.onclick=()=>{ fireNow('Test Alert','This is how your alerts will look & sound.','test','YOU'); };
+      // ---------- STORAGE ----------
+      const LS_RULES = "citycare_rules";
+      const LS_LOG = "citycare_fired";
+      let rules = JSON.parse(localStorage.getItem(LS_RULES) || "[]");
+      let fired = JSON.parse(localStorage.getItem(LS_LOG) || "[]");
+      function saveRules() {
+        localStorage.setItem(LS_RULES, JSON.stringify(rules));
+      }
+      function saveLog() {
+        localStorage.setItem(LS_LOG, JSON.stringify(fired));
+      }
 
-// WebAudio chimes per kind
-function playChime(kind){
-  if(!ensureAudio()) return;
-  const ctx=audioCtx, now=ctx.currentTime;
-  const o=ctx.createOscillator(), g=ctx.createGain();
-  o.connect(g).connect(ctx.destination);
-  let seq;
-  if(kind==='medicine')   seq=[[880,0.0,0.15],[0,0.12,0],[988,0.15,0.15],[0,0.30,0]];
-  else if(kind==='report')seq=[[659,0.0,0.18],[0,0.18,0],[659,0.20,0.18]];
-  else if(kind==='emergency') seq=[[523,0.0,0.12],[784,0.12,0.12],[523,0.24,0.12],[784,0.36,0.3]];
-  else seq=[[700,0.0,0.25],[0,0.25,0]];
-  g.gain.setValueAtTime(0, now);
-  let t=now;
-  seq.forEach(([freq,offset,dur])=>{
-    if(freq>0){ o.frequency.setValueAtTime(freq, now+offset); g.gain.linearRampToValueAtTime(0.9, now+offset+0.01); g.gain.linearRampToValueAtTime(0.0, now+offset+dur); }
-  });
-  o.start(now); o.stop(now + Math.max(...seq.map(s=>s[1]+s[2])) + 0.02);
-}
+      // ---------- TYPE UI ----------
+      const boxM = document.getElementById("box_medicine");
+      const boxR = document.getElementById("box_report");
+      const boxE = document.getElementById("box_emergency");
+      r_type.onchange = () => {
+        boxM.style.display = r_type.value === "medicine" ? "" : "none";
+        boxR.style.display = r_type.value === "report" ? "" : "none";
+        boxE.style.display = r_type.value === "emergency" ? "" : "none";
+      };
 
-// Browser Notification + vibration + title flash
-function showNotification(title, body){
-  try{
-    if('Notification' in window && Notification.permission==='granted'){
-      new Notification(title, { body });
-    }
-  }catch{}
-  if('vibrate' in navigator){ try{ navigator.vibrate([200,100,200]); }catch{} }
-  flashTitle(title);
-}
-let flashTimer=null, baseTitle=document.title;
-function flashTitle(msg){
-  if(flashTimer) clearInterval(flashTimer);
-  let on=false; let count=0;
-  flashTimer=setInterval(()=>{
-    document.title = on ? `🔔 ${msg}` : baseTitle;
-    on=!on; count++;
-    if(!document.hidden || count>20){ clearInterval(flashTimer); document.title=baseTitle; }
-  }, 600);
-}
-function showToast(msg){
-  const el=document.getElementById('toast'); el.textContent=msg; el.style.display='block';
-  setTimeout(()=>{ el.style.display='none'; }, 3000);
-}
-updatePermBadge();
+      // add time input
+      add_time.onclick = (e) => {
+        e.preventDefault();
+        const inp = document.createElement("input");
+        inp.type = "time";
+        inp.className = "med_time";
+        document.getElementById("med_times_row").insertBefore(inp, add_time);
+      };
 
-// ---------- STORAGE ----------
-const LS_RULES="citycare_rules";
-const LS_LOG="citycare_fired";
-let rules = JSON.parse(localStorage.getItem(LS_RULES)||"[]");
-let fired = JSON.parse(localStorage.getItem(LS_LOG)||"[]");
-function saveRules(){ localStorage.setItem(LS_RULES, JSON.stringify(rules)); }
-function saveLog(){ localStorage.setItem(LS_LOG, JSON.stringify(fired)); }
+      // ---------- BUILD RULE ----------
+      function uid() {
+        return "R_" + Math.random().toString(36).slice(2, 9).toUpperCase();
+      }
+      function buildRule() {
+        const kind = r_type.value,
+          target = r_for.value.trim();
+        if (!target) {
+          alert("Enter Patient/Target ID");
+          return null;
+        }
+        if (kind === "medicine") {
+          const name = med_name.value.trim();
+          if (!name) {
+            alert("Enter medicine name");
+            return null;
+          }
+          const dose = med_dose.value.trim();
+          const start = med_start.value
+            ? new Date(med_start.value + "T00:00:00")
+            : new Date();
+          const end = med_end.value
+            ? new Date(med_end.value + "T23:59:59")
+            : null;
+          const times = [...document.querySelectorAll(".med_time")]
+            .map((i) => i.value)
+            .filter(Boolean);
+          if (!times.length) {
+            alert("Add at least one time");
+            return null;
+          }
+          const dows = [...document.querySelectorAll(".dow:checked")].map((i) =>
+            parseInt(i.value, 10)
+          );
+          if (!dows.length) {
+            alert("Choose at least one day");
+            return null;
+          }
+          return {
+            id: uid(),
+            kind,
+            target,
+            title: `${name} — ${dose || "dose"}`,
+            meta: {
+              name,
+              dose,
+              start: start.getTime(),
+              end: end ? end.getTime() : null,
+              times,
+              dows,
+            },
+            next: calcNextMedicineDue(start, end, times, dows),
+          };
+        }
+        if (kind === "report") {
+          const title = rep_title.value.trim();
+          if (!title) {
+            alert("Enter report name");
+            return null;
+          }
+          const dueISO = rep_due.value;
+          if (!dueISO) {
+            alert("Set expected ready time");
+            return null;
+          }
+          const dueTs = new Date(dueISO).getTime();
+          const beforeMin = Math.max(0, parseInt(rep_before.value || "0", 10));
+          return {
+            id: uid(),
+            kind,
+            target,
+            title: `Report — ${title}`,
+            meta: { due: dueTs, beforeMin },
+            next: dueTs - beforeMin * 60 * 1000,
+          };
+        }
+        if (kind === "emergency") {
+          const label = em_label.value.trim() || "Emergency Watch";
+          const lat = parseFloat(em_lat.value),
+            lon = parseFloat(em_lon.value),
+            radKm = Math.max(0.1, parseFloat(em_radius.value || "1"));
+          if (!isFinite(lat) || !isFinite(lon)) {
+            alert("Enter valid latitude & longitude");
+            return null;
+          }
+          return {
+            id: uid(),
+            kind,
+            target,
+            title: `${label} (${radKm} km)`,
+            meta: { lat, lon, radKm, lastSeen: Date.now() },
+            next: Date.now() + 30000,
+          };
+        }
+        return null;
+      }
+      btn_save.onclick = () => {
+        const r = buildRule();
+        if (!r) return;
+        rules.unshift(r);
+        saveRules();
+        renderRules();
+        showToast("Rule saved");
+      };
 
-// ---------- TYPE UI ----------
-const boxM=document.getElementById('box_medicine');
-const boxR=document.getElementById('box_report');
-const boxE=document.getElementById('box_emergency');
-r_type.onchange=()=>{
-  boxM.style.display = r_type.value==='medicine' ? '' : 'none';
-  boxR.style.display = r_type.value==='report'   ? '' : 'none';
-  boxE.style.display = r_type.value==='emergency'? '' : 'none';
-};
-
-// add time input
-add_time.onclick=(e)=>{ e.preventDefault();
-  const inp=document.createElement('input'); inp.type='time'; inp.className='med_time';
-  document.getElementById('med_times_row').insertBefore(inp, add_time);
-};
-
-// ---------- BUILD RULE ----------
-function uid(){ return 'R_'+Math.random().toString(36).slice(2,9).toUpperCase(); }
-function buildRule(){
-  const kind=r_type.value, target=r_for.value.trim(); if(!target){ alert("Enter Patient/Target ID"); return null; }
-  if(kind==='medicine'){
-    const name=med_name.value.trim(); if(!name){ alert("Enter medicine name"); return null; }
-    const dose=med_dose.value.trim();
-    const start = med_start.value ? new Date(med_start.value+"T00:00:00") : new Date();
-    const end   = med_end.value ? new Date(med_end.value+"T23:59:59") : null;
-    const times = [...document.querySelectorAll('.med_time')].map(i=>i.value).filter(Boolean); if(!times.length){ alert("Add at least one time"); return null; }
-    const dows  = [...document.querySelectorAll('.dow:checked')].map(i=>parseInt(i.value,10)); if(!dows.length){ alert("Choose at least one day"); return null; }
-    return { id:uid(), kind, target, title:`${name} — ${dose||'dose'}`, meta:{name,dose,start:start.getTime(),end:end?end.getTime():null,times,dows}, next: calcNextMedicineDue(start,end,times,dows) };
-  }
-  if(kind==='report'){
-    const title=rep_title.value.trim(); if(!title){ alert("Enter report name"); return null; }
-    const dueISO=rep_due.value; if(!dueISO){ alert("Set expected ready time"); return null; }
-    const dueTs=(new Date(dueISO)).getTime(); const beforeMin=Math.max(0, parseInt(rep_before.value||"0",10));
-    return { id:uid(), kind, target, title:`Report — ${title}`, meta:{due:dueTs,beforeMin}, next: dueTs - beforeMin*60*1000 };
-  }
-  if(kind==='emergency'){
-    const label=em_label.value.trim()||"Emergency Watch";
-    const lat=parseFloat(em_lat.value), lon=parseFloat(em_lon.value), radKm=Math.max(0.1, parseFloat(em_radius.value||"1"));
-    if(!isFinite(lat)||!isFinite(lon)){ alert("Enter valid latitude & longitude"); return null; }
-    return { id:uid(), kind, target, title:`${label} (${radKm} km)`, meta:{lat,lon,radKm,lastSeen: Date.now()}, next: Date.now()+30000 };
-  }
-  return null;
-}
-btn_save.onclick=()=>{ const r=buildRule(); if(!r) return; rules.unshift(r); saveRules(); renderRules(); showToast("Rule saved"); };
-
-// ---------- TABLES ----------
-function fmtDate(ts){ const d=new Date(ts); return d.toLocaleDateString(); }
-function renderRules(){
-  rule_count.textContent=`${rules.length} rule${rules.length!==1?'s':''}`;
-  const tbl=document.getElementById('tbl_rules'); [...tbl.querySelectorAll('.tr.data')].forEach(n=>n.remove());
-  rules.forEach((r,i)=>{
-    const detail = (r.kind==='medicine')
-      ? `Times: ${r.meta.times.join(", ")} · Days: ${r.meta.dows.join("")} · From ${fmtDate(r.meta.start)}${r.meta.end?(' to '+fmtDate(r.meta.end)):""}`
-      : (r.kind==='report')
-      ? `Due: ${new Date(r.meta.due).toLocaleString()} · ${r.meta.beforeMin} min before`
-      : `Watch at ${r.meta.lat.toFixed(4)}, ${r.meta.lon.toFixed(4)} · ${r.meta.radKm} km`;
-    const tr=document.createElement('div'); tr.className='tr grid data';
-    tr.innerHTML=`
+      // ---------- TABLES ----------
+      function fmtDate(ts) {
+        const d = new Date(ts);
+        return d.toLocaleDateString();
+      }
+      function renderRules() {
+        rule_count.textContent = `${rules.length} rule${
+          rules.length !== 1 ? "s" : ""
+        }`;
+        const tbl = document.getElementById("tbl_rules");
+        [...tbl.querySelectorAll(".tr.data")].forEach((n) => n.remove());
+        rules.forEach((r, i) => {
+          const detail =
+            r.kind === "medicine"
+              ? `Times: ${r.meta.times.join(", ")} · Days: ${r.meta.dows.join(
+                  ""
+                )} · From ${fmtDate(r.meta.start)}${
+                  r.meta.end ? " to " + fmtDate(r.meta.end) : ""
+                }`
+              : r.kind === "report"
+              ? `Due: ${new Date(r.meta.due).toLocaleString()} · ${
+                  r.meta.beforeMin
+                } min before`
+              : `Watch at ${r.meta.lat.toFixed(4)}, ${r.meta.lon.toFixed(
+                  4
+                )} · ${r.meta.radKm} km`;
+          const tr = document.createElement("div");
+          tr.className = "tr grid data";
+          tr.innerHTML = `
       <div class="td"><b>${r.title}</b><div class="hint">${r.target}</div></div>
       <div class="td"><span class="badge">${r.kind}</span></div>
       <div class="td">${detail}</div>
-      <div class="td">${r.next? new Date(r.next).toLocaleString() : '—'}</div>
+      <div class="td">${r.next ? new Date(r.next).toLocaleString() : "—"}</div>
       <div class="td">
         <div class="controls">
-          <button class="secondary" onclick="dupRule('${r.id}')">Duplicate</button>
+          <button class="secondary" onclick="dupRule('${
+            r.id
+          }')">Duplicate</button>
           <button onclick="delRule('${r.id}')">Delete</button>
         </div>
       </div>`;
-    tbl.appendChild(tr);
-  });
-  // log
-  log_count.textContent=fired.length;
-  const list=document.getElementById('log_list'); list.innerHTML='';
-  fired.forEach(a=>{
-    const row=document.createElement('div'); row.className='tr'; row.style.padding='10px';
-    row.innerHTML=`<div><b>${a.title}</b> <span class="badge">${a.kind}</span></div>
+          tbl.appendChild(tr);
+        });
+        // log
+        log_count.textContent = fired.length;
+        const list = document.getElementById("log_list");
+        list.innerHTML = "";
+        fired.forEach((a) => {
+          const row = document.createElement("div");
+          row.className = "tr";
+          row.style.padding = "10px";
+          row.innerHTML = `<div><b>${a.title}</b> <span class="badge">${
+            a.kind
+          }</span></div>
       <div class="hint">${new Date(a.ts).toLocaleString()} • ${a.for}</div>
       <div style="margin-top:6px;white-space:pre-wrap">${a.msg}</div>`;
-    list.appendChild(row);
-  });
-}
-window.delRule=(id)=>{ rules=rules.filter(r=>r.id!==id); saveRules(); renderRules(); };
-window.dupRule=(id)=>{ const r=rules.find(x=>x.id===id); if(!r) return; const n=JSON.parse(JSON.stringify(r)); n.id=uid(); n.next=Date.now()+60000; rules.unshift(n); saveRules(); renderRules(); };
-btn_clear_log.onclick=()=>{ fired=[]; saveLog(); renderRules(); };
+          list.appendChild(row);
+        });
+      }
+      window.delRule = (id) => {
+        rules = rules.filter((r) => r.id !== id);
+        saveRules();
+        renderRules();
+      };
+      window.dupRule = (id) => {
+        const r = rules.find((x) => x.id === id);
+        if (!r) return;
+        const n = JSON.parse(JSON.stringify(r));
+        n.id = uid();
+        n.next = Date.now() + 60000;
+        rules.unshift(n);
+        saveRules();
+        renderRules();
+      };
+      btn_clear_log.onclick = () => {
+        fired = [];
+        saveLog();
+        renderRules();
+      };
 
-// ---------- SCHEDULER ----------
-let RUN=true, TICK=null;
-btn_pause.onclick=()=>{ RUN=!RUN; sched_state.textContent = RUN? 'Running' : 'Paused'; btn_pause.textContent = RUN? 'Pause Scheduler' : 'Resume Scheduler'; };
-function scheduleLoop(){ if(TICK) clearInterval(TICK); TICK=setInterval(()=>tick(), 30000); }
-function calcNextMedicineDue(startTs,endTs,times,dows){
-  const now=new Date();
-  for(let dayOffset=0; dayOffset<14; dayOffset++){
-    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+dayOffset);
-    const dow=d.getDay();
-    if(!dows.includes(dow)) continue;
-    if(d < new Date(startTs)) continue;
-    if(endTs && d > new Date(endTs)) break;
-    for(const t of times){
-      const [hh,mm]=t.split(':').map(Number);
-      const candidate=new Date(d.getFullYear(),d.getMonth(),d.getDate(),hh,mm,0).getTime();
-      if(candidate > Date.now()+1000) return candidate;
-    }
-  }
-  return null;
-}
-
-// Fire helper: sound + notif + log (+ optional backend)
-async function fireNow(title,msg,kind,targetId){
-  // sound + notif
-  playChime(kind);
-  showNotification(title, msg);
-  // toast in-page
-  showToast(title);
-  // log
-  const entry={title, msg, kind, for: targetId||'-', ts:Date.now()};
-  fired.unshift(entry); saveLog(); renderRules();
-  // backend (best-effort)
-  try{ await fetch(`${API}/alerts/create`,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(entry)});}catch{}
-}
-
-// Distance helpers for emergency watch
-function kmBetween(lat1,lon1,lat2,lon2){
-  const R=6371, toRad=x=>x*Math.PI/180;
-  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
-  const a=Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(a));
-}
-
-function tick(){
-  if(!RUN) return;
-  const now=Date.now(); let changed=false;
-
-  rules.forEach(r=>{
-    if(r.kind==='medicine' && r.next && now>=r.next){
-      fireNow(`💊 ${r.title}`, `Patient ${r.target}\nTime to take: ${r.title}`,'medicine',r.target);
-      r.next = calcNextMedicineDue(r.meta.start, r.meta.end, r.meta.times, r.meta.dows); changed=true;
-    }
-    if(r.kind==='report' && r.next && now>=r.next){
-      fireNow(`📄 Report Reminder — ${r.title}`, `Patient ${r.target}\nReport is due now.`, 'report', r.target);
-      r.next = null; changed=true; // one-shot
-    }
-    if(r.kind==='emergency'){
-      try{
-        const arr = JSON.parse(localStorage.getItem("citycare_user")||"[]");
-        for(const inc of arr){
-          if(inc.type!=='incident') continue;
-          const dist = kmBetween(r.meta.lat, r.meta.lon, inc.lat, inc.lon);
-          if(dist <= r.meta.radKm && (!r.meta.lastSeen || (inc._ts||0) > r.meta.lastSeen)){
-            const label = inc.name ? inc.name : `${inc.lat.toFixed(4)}, ${inc.lon.toFixed(4)}`;
-            fireNow(`🚨 Nearby Incident — ${r.title}`, `Target ${r.target}\nIncident within ${dist.toFixed(2)} km\n${label}`, 'emergency', r.target);
-            r.meta.lastSeen = now; changed=true; break;
+      // ---------- SCHEDULER ----------
+      let RUN = true,
+        TICK = null;
+      btn_pause.onclick = () => {
+        RUN = !RUN;
+        sched_state.textContent = RUN ? "Running" : "Paused";
+        btn_pause.textContent = RUN ? "Pause Scheduler" : "Resume Scheduler";
+      };
+      function scheduleLoop() {
+        if (TICK) clearInterval(TICK);
+        TICK = setInterval(() => tick(), 30000);
+      }
+      function calcNextMedicineDue(startTs, endTs, times, dows) {
+        const now = new Date();
+        for (let dayOffset = 0; dayOffset < 14; dayOffset++) {
+          const d = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + dayOffset
+          );
+          const dow = d.getDay();
+          if (!dows.includes(dow)) continue;
+          if (d < new Date(startTs)) continue;
+          if (endTs && d > new Date(endTs)) break;
+          for (const t of times) {
+            const [hh, mm] = t.split(":").map(Number);
+            const candidate = new Date(
+              d.getFullYear(),
+              d.getMonth(),
+              d.getDate(),
+              hh,
+              mm,
+              0
+            ).getTime();
+            if (candidate > Date.now() + 1000) return candidate;
           }
         }
-      }catch{}
-      r.next = now + 60000; // re-check in 60s
-    }
-  });
+        return null;
+      }
 
-  if(changed){ saveRules(); renderRules(); }
-}
+      // Fire helper: sound + notif + log (+ optional backend)
+      async function fireNow(title, msg, kind, targetId) {
+        // sound + notif
+        playChime(kind);
+        showNotification(title, msg);
+        // toast in-page
+        showToast(title);
+        // log
+        const entry = {
+          title,
+          msg,
+          kind,
+          for: targetId || "-",
+          ts: Date.now(),
+        };
+        fired.unshift(entry);
+        saveLog();
+        renderRules();
+        // backend (best-effort)
+        try {
+          await fetch(`${API}/alerts/create`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(entry),
+          });
+        } catch {}
+      }
 
-// Ensure map incidents have timestamps for “newness”
-(function patchUserMarks(){
-  try{
-    const arr = JSON.parse(localStorage.getItem("citycare_user")||"[]");
-    let changed=false;
-    arr.forEach(x=>{ if(x.type==='incident' && !x._ts){ x._ts=Date.now(); changed=true; } });
-    if(changed) localStorage.setItem("citycare_user", JSON.stringify(arr));
-  }catch{}
-})();
+      // Distance helpers for emergency watch
+      function kmBetween(lat1, lon1, lat2, lon2) {
+        const R = 6371,
+          toRad = (x) => (x * Math.PI) / 180;
+        const dLat = toRad(lat2 - lat1),
+          dLon = toRad(lon2 - lon1);
+        const a =
+          Math.sin(dLat / 2) ** 2 +
+          Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLon / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+      }
 
-// init
-renderRules();
-scheduleLoop();
-document.addEventListener('visibilitychange',()=>{ if(!document.hidden && document.title!==baseTitle){ document.title=baseTitle; } });
-</script>
-</body></html>
+      function tick() {
+        if (!RUN) return;
+        const now = Date.now();
+        let changed = false;
+
+        rules.forEach((r) => {
+          if (r.kind === "medicine" && r.next && now >= r.next) {
+            fireNow(
+              `💊 ${r.title}`,
+              `Patient ${r.target}\nTime to take: ${r.title}`,
+              "medicine",
+              r.target
+            );
+            r.next = calcNextMedicineDue(
+              r.meta.start,
+              r.meta.end,
+              r.meta.times,
+              r.meta.dows
+            );
+            changed = true;
+          }
+          if (r.kind === "report" && r.next && now >= r.next) {
+            fireNow(
+              `📄 Report Reminder — ${r.title}`,
+              `Patient ${r.target}\nReport is due now.`,
+              "report",
+              r.target
+            );
+            r.next = null;
+            changed = true; // one-shot
+          }
+          if (r.kind === "emergency") {
+            try {
+              const arr = JSON.parse(
+                localStorage.getItem("citycare_user") || "[]"
+              );
+              for (const inc of arr) {
+                if (inc.type !== "incident") continue;
+                const dist = kmBetween(
+                  r.meta.lat,
+                  r.meta.lon,
+                  inc.lat,
+                  inc.lon
+                );
+                if (
+                  dist <= r.meta.radKm &&
+                  (!r.meta.lastSeen || (inc._ts || 0) > r.meta.lastSeen)
+                ) {
+                  const label = inc.name
+                    ? inc.name
+                    : `${inc.lat.toFixed(4)}, ${inc.lon.toFixed(4)}`;
+                  fireNow(
+                    `🚨 Nearby Incident — ${r.title}`,
+                    `Target ${r.target}\nIncident within ${dist.toFixed(
+                      2
+                    )} km\n${label}`,
+                    "emergency",
+                    r.target
+                  );
+                  r.meta.lastSeen = now;
+                  changed = true;
+                  break;
+                }
+              }
+            } catch {}
+            r.next = now + 60000; // re-check in 60s
+          }
+        });
+
+        if (changed) {
+          saveRules();
+          renderRules();
+        }
+      }
+
+      // Ensure map incidents have timestamps for “newness”
+      (function patchUserMarks() {
+        try {
+          const arr = JSON.parse(localStorage.getItem("citycare_user") || "[]");
+          let changed = false;
+          arr.forEach((x) => {
+            if (x.type === "incident" && !x._ts) {
+              x._ts = Date.now();
+              changed = true;
+            }
+          });
+          if (changed)
+            localStorage.setItem("citycare_user", JSON.stringify(arr));
+        } catch {}
+      })();
+
+      // init
+      renderRules();
+      scheduleLoop();
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden && document.title !== baseTitle) {
+          document.title = baseTitle;
+        }
+      });
+    </script>
+  </body>
+</html>

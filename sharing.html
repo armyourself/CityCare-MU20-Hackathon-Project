@@ -1,166 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CityCare — Data Sharing</title>
-<style>
-:root{--border:#1e2a44;--bg:#0b1220;--card:#0f1830;--ink:#e7eefc;--muted:#9cc0ff;--accent:#2483ff}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
-header h1{margin:0;font-size:18px;color:var(--accent)}
-.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
-.nav a.active,.nav a:hover{background:#142243}
-.main{max-width:1000px;margin:16px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:16px}
-h2,h3{color:var(--accent);margin:6px 0}
-label{font-size:12px;color:var(--muted)}
-input{width:100%;padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
-.btn{cursor:pointer;background:var(--accent);border:none;border-radius:10px;padding:10px 14px;color:#fff}
-.btn.secondary{background:#24345f}
-.small{font-size:12px;color:var(--muted)}
-pre{background:#101a34;padding:12px;border-radius:8px;white-space:pre-wrap;word-wrap:break-word}
-.grid{display:grid;gap:10px}
-.cols-3{grid-template-columns:1fr 1fr 1fr}
-@media (max-width:900px){.cols-3{grid-template-columns:1fr}}
-</style>
-</head>
-<body>
-<header>
-  <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav" id="topnav">
-    <a href="index.html"    data-page="index.html">Home</a>
-    <a href="map.html"      data-page="map.html">Map</a>
-    <a href="patients.html" data-page="patients.html">Patients</a>
-    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
-    <a href="sharing.html"  data-page="sharing.html">Data Sharing</a>
-    <a href="alerts.html"   data-page="alerts.html">Alerts</a>
-    <a href="monitor.html"  data-page="monitor.html">Monitor</a>
-  </nav>
-  <div class="row">
-    <input id="user_id" placeholder="User (USR_ADM_001)">
-    <input id="pin" placeholder="PIN">
-    <button id="btn_login">Login</button>
-  </div>
-</header>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CityCare — Data Sharing</title>
+    <style>
+      :root {
+        --border: #1e2a44;
+        --bg: #0b1220;
+        --card: #0f1830;
+        --ink: #e7eefc;
+        --muted: #9cc0ff;
+        --accent: #2483ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--accent);
+        background: #0d1730;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--accent);
+      }
+      .nav a {
+        color: #cfe0ff;
+        text-decoration: none;
+        margin: 0 8px;
+        padding: 6px 10px;
+        border-radius: 8px;
+      }
+      .nav a.active,
+      .nav a:hover {
+        background: #142243;
+      }
 
-<div class="main">
-  <div class="card">
-    <h2>Data Access Portal</h2>
-    <p class="small">
-      Enter your <b>User ID</b> and <b>PIN</b> to authenticate, then enter the <b>Patient ID</b> you want to view.  
-      Access is granted based on the patient's consent settings: <code>all</code>, <code>doctors</code>, <code>custom</code>, or <code>none</code>.
-    </p>
-
-    <div class="grid cols-3">
-      <div>
-        <label>Your User ID</label>
-        <input id="viewer_id" placeholder="e.g., DOC_001 / PHM_002 / PAT_ABC123">
-      </div>
-      <div>
-        <label>Your PIN</label>
-        <input id="viewer_pin" placeholder="Your PIN (4–8 digits)">
-      </div>
-      <div>
-        <label>Patient ID to View</label>
-        <input id="patient_id" placeholder="e.g., PAT_XYZ123">
-      </div>
-    </div>
-
-    <div style="margin-top:10px;display:flex;gap:8px">
-      <button id="btn_access" class="btn">Access Data</button>
-      <span id="access_status" class="small">Not authenticated</span>
-    </div>
-  </div>
-
-  <div id="result_card" class="card" style="display:none">
-    <h3>Patient Information</h3>
-    <div id="patient_info"></div>
-  </div>
-</div>
-
-<footer class="small" style="text-align:center;margin:24px 0;color:#9cc0ff">© 2025 CityCare Project — Data Sharing Module</footer>
-
-<script>
-const API = "http://127.0.0.1:8000";
-const qs = (id)=>document.getElementById(id);
-
-// navbar active
-(function(){const file=location.pathname.split("/").pop()||"sharing.html";
-  document.querySelectorAll('#topnav a').forEach(a=>{
-    if(a.dataset?.page===file) a.classList.add('active'); else a.classList.remove('active');
-  });
-})();
-
-async function authViewer(user_id, pin){
-  // Backend returns role based on ID (doctor if starts with DOC)
-  const r = await fetch(`${API}/auth/login`,{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({user_id, pin})
-  });
-  if(!r.ok) throw new Error("Invalid credentials");
-  return r.json(); // { user: { id, role, name } }
+/* --- Login Row (force horizontal) --- */
+header .row{
+  display:flex;
+  flex-wrap:nowrap !important;
+  align-items:center;
+  gap:6px;
 }
+header input,
+header button{
+  padding:6px 8px;
+  border:1px solid #24345f;
+  border-radius:8px;
+  background:#0c1430;
+  color:var(--ink);
+  font-size:13px;
+}
+header button{
+  cursor:pointer;
+  background:var(--accent);
+  border:none;
+  color:white;
+}
+      .main {
+        max-width: 1000px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 16px;
+      }
+      h2,
+      h3 {
+        color: var(--accent);
+        margin: 6px 0;
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #24345f;
+        border-radius: 10px;
+        background: #0c1430;
+        color: var(--ink);
+      }
+      .btn {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #fff;
+      }
+      .btn.secondary {
+        background: #24345f;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      pre {
+        background: #101a34;
+        padding: 12px;
+        border-radius: 8px;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .grid {
+        display: grid;
+        gap: 10px;
+      }
+      .cols-3 {
+        grid-template-columns: 1fr 1fr 1fr;
+      }
+      @media (max-width: 900px) {
+        .cols-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏥 CityCare — Indore</h1>
+      <nav class="nav">
+        <a class="active" href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="patients.html">Patients</a>
+        <a href="schedule.html">Scheduling</a>
+        <a href="sharing.html">Data Sharing</a>
+        <a href="alerts.html">Alerts</a>
+        <a href="monitor.html">Monitor</a>
+      </nav>
+      <div class="row">
+        <input id="user_id" placeholder="User (USR_PAT_001)" /><input
+          id="pin"
+          placeholder="PIN"
+        /><button id="btn_login">Login</button>
+      </div>
+    </header>
 
-qs("btn_access").onclick = async ()=>{
-  const viewer = qs("viewer_id").value.trim();
-  const pin    = qs("viewer_pin").value.trim();
-  const pid    = qs("patient_id").value.trim();
+    <div class="main">
+      <div class="card">
+        <h2>Data Access Portal</h2>
+        <p class="small">
+          Enter your <b>User ID</b> and <b>PIN</b> to authenticate, then enter
+          the <b>Patient ID</b> you want to view. Access is granted based on the
+          patient's consent settings: <code>all</code>, <code>doctors</code>,
+          <code>custom</code>, or <code>none</code>.
+        </p>
 
-  if(!viewer || !pin){ alert("Enter your User ID and PIN"); return; }
-  if(!pid){ alert("Enter the Patient ID you want to view"); return; }
+        <div class="grid cols-3">
+          <div>
+            <label>Your User ID</label>
+            <input
+              id="viewer_id"
+              placeholder="e.g., DOC_001 / PHM_002 / PAT_ABC123"
+            />
+          </div>
+          <div>
+            <label>Your PIN</label>
+            <input id="viewer_pin" placeholder="Your PIN (4–8 digits)" />
+          </div>
+          <div>
+            <label>Patient ID to View</label>
+            <input id="patient_id" placeholder="e.g., PAT_XYZ123" />
+          </div>
+        </div>
 
-  try{
-    // 1) authenticate viewer (role comes from backend)
-    const session = await authViewer(viewer, pin);
-    const role = session?.user?.role || "patient";
-    qs("access_status").textContent = `Authenticated as ${role.toUpperCase()} (${session.user.id})`;
+        <div style="margin-top: 10px; display: flex; gap: 8px">
+          <button id="btn_access" class="btn">Access Data</button>
+          <span id="access_status" class="small">Not authenticated</span>
+        </div>
+      </div>
 
-    // 2) load patient record
-    const r = await fetch(`${API}/patients/${encodeURIComponent(pid)}`);
-    if(!r.ok){ alert("Patient not found."); return; }
-    const p = await r.json();
+      <div id="result_card" class="card" style="display: none">
+        <h3>Patient Information</h3>
+        <div id="patient_info"></div>
+      </div>
+    </div>
 
-    // 3) consent check
-    const consent = p.consent || "none";
-    const isDoctor = role.toLowerCase()==="doctor";
-    const allowed =
-      consent === "all" ||
-      (consent === "doctors" && isDoctor) ||
-      (consent === "custom" && (p.share_with||[]).map(x=>x.toUpperCase()).includes(viewer.toUpperCase()));
+    <footer
+      class="small"
+      style="text-align: center; margin: 24px 0; color: #9cc0ff"
+    >
+      © 2025 CityCare Project — Data Sharing Module
+    </footer>
 
-    if(!allowed){
-      alert("Access denied — you’re not authorized to view this patient’s data.");
-      return;
-    }
+    <script>
+      const API = "http://127.0.0.1:8000";
+      const qs = (id) => document.getElementById(id);
 
-    // 4) display
-    let info = `<b>Name:</b> ${p.name||"—"}<br>
-                <b>Age:</b> ${p.age||"—"}<br>
-                <b>Gender:</b> ${p.gender||"—"}<br>
-                <b>Height:</b> ${p.height_cm||"—"} cm<br>
-                <b>Weight:</b> ${p.weight_kg||"—"} kg<br>
-                <b>BMI:</b> ${p.bmi||"—"}<br>
-                <b>Phone:</b> ${p.phone||"—"}<br>
-                <b>Email:</b> ${p.email||"—"}<br>
-                <b>Emergency Contact:</b> ${p.emergency_contact||"—"}<br><hr>
-                <b>Conditions:</b><br><pre>${p.conditions||"—"}</pre>
-                <b>Allergies:</b><br><pre>${p.allergies||"—"}</pre>
-                <b>Medications:</b><br><pre>${p.meds||"—"}</pre><hr>
-                <b>Assigned Doctor:</b> ${p.assigned_doctor_id||"—"}<br>
-                <b>Facility:</b> ${p.facility_id||"—"}<br>
-                <b>Consent:</b> ${p.consent||"none"}<br>
-                <b>Shared With:</b> ${(p.share_with||[]).join(", ")||"—"}`;
-    qs("patient_info").innerHTML = info;
-    qs("result_card").style.display = '';
+      // navbar active
+      (function () {
+        const file = location.pathname.split("/").pop() || "sharing.html";
+        document.querySelectorAll("#topnav a").forEach((a) => {
+          if (a.dataset?.page === file) a.classList.add("active");
+          else a.classList.remove("active");
+        });
+      })();
 
-  }catch(e){
-    alert("Authentication/Data fetch failed. Is the backend running?");
-    console.error(e);
-  }
-};
-</script>
-</body>
+      async function authViewer(user_id, pin) {
+        // Backend returns role based on ID (doctor if starts with DOC)
+        const r = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id, pin }),
+        });
+        if (!r.ok) throw new Error("Invalid credentials");
+        return r.json(); // { user: { id, role, name } }
+      }
+
+      qs("btn_access").onclick = async () => {
+        const viewer = qs("viewer_id").value.trim();
+        const pin = qs("viewer_pin").value.trim();
+        const pid = qs("patient_id").value.trim();
+
+        if (!viewer || !pin) {
+          alert("Enter your User ID and PIN");
+          return;
+        }
+        if (!pid) {
+          alert("Enter the Patient ID you want to view");
+          return;
+        }
+
+        try {
+          // 1) authenticate viewer (role comes from backend)
+          const session = await authViewer(viewer, pin);
+          const role = session?.user?.role || "patient";
+          qs(
+            "access_status"
+          ).textContent = `Authenticated as ${role.toUpperCase()} (${
+            session.user.id
+          })`;
+
+          // 2) load patient record
+          const r = await fetch(`${API}/patients/${encodeURIComponent(pid)}`);
+          if (!r.ok) {
+            alert("Patient not found.");
+            return;
+          }
+          const p = await r.json();
+
+          // 3) consent check
+          const consent = p.consent || "none";
+          const isDoctor = role.toLowerCase() === "doctor";
+          const allowed =
+            consent === "all" ||
+            (consent === "doctors" && isDoctor) ||
+            (consent === "custom" &&
+              (p.share_with || [])
+                .map((x) => x.toUpperCase())
+                .includes(viewer.toUpperCase()));
+
+          if (!allowed) {
+            alert(
+              "Access denied — you’re not authorized to view this patient’s data."
+            );
+            return;
+          }
+
+          // 4) display
+          let info = `<b>Name:</b> ${p.name || "—"}<br>
+                <b>Age:</b> ${p.age || "—"}<br>
+                <b>Gender:</b> ${p.gender || "—"}<br>
+                <b>Height:</b> ${p.height_cm || "—"} cm<br>
+                <b>Weight:</b> ${p.weight_kg || "—"} kg<br>
+                <b>BMI:</b> ${p.bmi || "—"}<br>
+                <b>Phone:</b> ${p.phone || "—"}<br>
+                <b>Email:</b> ${p.email || "—"}<br>
+                <b>Emergency Contact:</b> ${p.emergency_contact || "—"}<br><hr>
+                <b>Conditions:</b><br><pre>${p.conditions || "—"}</pre>
+                <b>Allergies:</b><br><pre>${p.allergies || "—"}</pre>
+                <b>Medications:</b><br><pre>${p.meds || "—"}</pre><hr>
+                <b>Assigned Doctor:</b> ${p.assigned_doctor_id || "—"}<br>
+                <b>Facility:</b> ${p.facility_id || "—"}<br>
+                <b>Consent:</b> ${p.consent || "none"}<br>
+                <b>Shared With:</b> ${(p.share_with || []).join(", ") || "—"}`;
+          qs("patient_info").innerHTML = info;
+          qs("result_card").style.display = "";
+        } catch (e) {
+          alert("Authentication/Data fetch failed. Is the backend running?");
+          console.error(e);
+        }
+      };
+    </script>
+  </body>
 </html>

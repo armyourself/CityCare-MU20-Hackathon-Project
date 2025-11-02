@@ -1,273 +1,457 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CityCare — Patients</title>
-<style>
-:root{--border:#1e2a44;--bg:#0b1220;--card:#0f1830;--ink:#e7eefc;--muted:#9cc0ff;--accent:#2483ff}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif}
-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:2px solid var(--accent);background:#0d1730;position:sticky;top:0;z-index:20}
-header h1{margin:0;font-size:18px;color:var(--accent)}
-.nav a{color:#cfe0ff;text-decoration:none;margin:0 8px;padding:6px 10px;border-radius:8px}
-.nav a.active,.nav a:hover{background:#142243}
-.main{max-width:1100px;margin:16px auto;padding:0 16px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:14px}
-h2,h3{color:var(--accent);margin:6px 0}
-.grid{display:grid;gap:12px}
-.cols-2{grid-template-columns:1fr 1fr}
-@media (max-width:900px){.cols-2{grid-template-columns:1fr}}
-label{font-size:12px;color:var(--muted)}
-input,select,textarea{width:100%;padding:10px;border:1px solid #24345f;border-radius:10px;background:#0c1430;color:var(--ink)}
-textarea{min-height:70px;resize:vertical}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.btn{cursor:pointer;background:var(--accent);border:none;border-radius:10px;padding:10px 14px;color:#fff}
-.btn.secondary{background:#24345f}
-.small{font-size:12px;color:var(--muted)}
-.badge{padding:2px 8px;border:1px solid var(--border);border-radius:8px;background:#142243;color:#bcd0ff;font-size:12px}
-</style>
-</head>
-<body>
-<header>
-  <h1>🏥 CityCare — Indore</h1>
-  <nav class="nav" id="topnav">
-    <a href="index.html"    data-page="index.html">Home</a>
-    <a href="map.html"      data-page="map.html">Map</a>
-    <a href="patients.html" data-page="patients.html">Patients</a>
-    <a href="schedule.html" data-page="schedule.html">Scheduling</a>
-    <a href="sharing.html"  data-page="sharing.html">Data Sharing</a>
-    <a href="alerts.html"   data-page="alerts.html">Alerts</a>
-    <a href="monitor.html"  data-page="monitor.html">Monitor</a>
-  </nav>
-  <div class="row">
-    <input id="user_id" placeholder="User (USR_ADM_001)">
-    <input id="pin" placeholder="PIN">
-    <button id="btn_login">Login</button>
-  </div>
-</header>
-
-
-
-<div class="main">
-  <!-- Login -->
-  <div class="card">
-    <h2>Patient Login</h2>
-    <p class="small">Enter your <b>User ID</b> and <b>PIN</b>. If your doctor registered you (ID+PIN), you can now complete your dashboard.</p>
-    <div class="row">
-      <input id="user_id" placeholder="Patient User ID (e.g., PAT_AB12CD)" style="min-width:260px">
-      <input id="pin" placeholder="PIN (4–8 digits)" style="min-width:180px">
-      <button id="btn_login" class="btn">Login</button>
-      <span id="login_status" class="badge">Not logged in</span>
-    </div>
-  </div>
-
-  <!-- Dashboard form -->
-  <div id="dash_card" class="card" style="display:none">
-    <h2>Patient Dashboard</h2>
-    <p class="small">Fill your profile and medical details. Click <b>Save</b> to update the main database.</p>
-
-    <div class="grid cols-2">
-      <div>
-        <label>Name</label>
-        <input id="name">
-      </div>
-      <div>
-        <label>Gender</label>
-        <select id="gender">
-          <option value="">—</option>
-          <option>Female</option><option>Male</option><option>Other</option><option>Prefer not to say</option>
-        </select>
-      </div>
-      <div>
-        <label>Age</label>
-        <input id="age" type="number" min="0">
-      </div>
-      <div>
-        <label>Height (cm)</label>
-        <input id="height_cm" type="number" step="0.1" min="0">
-      </div>
-      <div>
-        <label>Weight (kg)</label>
-        <input id="weight_kg" type="number" step="0.1" min="0">
-      </div>
-      <div>
-        <label>BMI</label>
-        <input id="bmi" type="number" step="0.1" min="0" placeholder="auto-calc if left blank">
-      </div>
-
-      <div>
-        <label>Phone</label>
-        <input id="phone">
-      </div>
-      <div>
-        <label>Email</label>
-        <input id="email">
-      </div>
-      <div>
-        <label>Emergency Contact</label>
-        <input id="emergency_contact" placeholder="Name / Phone">
-      </div>
-      <div>
-        <label>Assigned Doctor ID</label>
-        <input id="assigned_doctor_id" placeholder="DOC_001">
-      </div>
-      <div>
-        <label>Facility ID</label>
-        <input id="facility_id" placeholder="IND_HSP_001">
-      </div>
-    </div>
-
-    <div class="grid" style="margin-top:10px">
-      <div>
-        <label>Medical Conditions</label>
-        <textarea id="conditions" placeholder="e.g., Diabetes, Hypertension"></textarea>
-      </div>
-      <div>
-        <label>Allergies</label>
-        <textarea id="allergies" placeholder="e.g., Penicillin, Peanuts"></textarea>
-      </div>
-      <div>
-        <label>Current Medications</label>
-        <textarea id="meds" placeholder="e.g., Metformin 500 mg daily"></textarea>
-      </div>
-    </div>
-
-    <hr>
-
-    <h3>Data Sharing</h3>
-    <p class="small">Choose who can see your data:</p>
-    <div class="grid cols-2">
-      <div>
-        <label>Consent</label>
-        <select id="consent">
-          <option value="none">None (only you)</option>
-          <option value="all">All users</option>
-          <option value="doctors">All doctors</option>
-          <option value="custom">Custom list</option>
-        </select>
-      </div>
-      <div>
-        <label>Share With (when Custom). Comma-separated User IDs</label>
-        <input id="share_with" placeholder="DOC_001, PHM_007">
-      </div>
-    </div>
-
-    <div class="row" style="justify-content:flex-end;margin-top:10px">
-      <button id="btn_save" class="btn">Save</button>
-      <span id="save_status" class="badge">—</span>
-    </div>
-  </div>
-</div>
-
-<footer class="small" style="text-align:center;margin:24px 0;color:#9cc0ff">© 2025 CityCare Project — Patients Module</footer>
-
-<script>
-const API = "http://127.0.0.1:8000";
-const qs = (id)=>document.getElementById(id);
-
-// Navbar active
-(function(){const file=location.pathname.split("/").pop()||"patients.html";
-  document.querySelectorAll('#topnav a').forEach(a=>{
-    if(a.dataset?.page===file) a.classList.add('active'); else a.classList.remove('active');
-  });
-})();
-
-let SESSION = { user_id:null, pin:null };
-
-qs('btn_login').onclick = async ()=>{
-  const uid = qs('user_id').value.trim();
-  const pin = qs('pin').value.trim();
-  if(!uid || !pin){ alert("Enter User ID and PIN"); return; }
-  try{
-    // Load patient record (must exist from doctor registration)
-    const r = await fetch(`${API}/patients/${encodeURIComponent(uid)}`);
-    if(!r.ok){ alert("No such patient. Ask your doctor to register your ID first."); return; }
-    const patient = await r.json();
-    // soft PIN check on update; here we just stage session
-    SESSION = { user_id: uid, pin: pin };
-    qs('login_status').textContent = `Logged in: ${uid}`;
-    qs('dash_card').style.display = '';
-    fillForm(patient);
-  }catch(e){ alert("Backend not reachable."); }
-};
-
-function fillForm(p){
-  setVal('name', p.name);
-  setVal('gender', p.gender);
-  setVal('age', p.age);
-  setVal('height_cm', p.height_cm);
-  setVal('weight_kg', p.weight_kg);
-  setVal('bmi', p.bmi);
-  setVal('phone', p.phone);
-  setVal('email', p.email);
-  setVal('emergency_contact', p.emergency_contact);
-  setVal('assigned_doctor_id', p.assigned_doctor_id);
-  setVal('facility_id', p.facility_id);
-  setVal('conditions', p.conditions);
-  setVal('allergies', p.allergies);
-  setVal('meds', p.meds);
-  setVal('consent', p.consent || 'none');
-  qs('share_with').value = (p.share_with && p.share_with.length) ? p.share_with.join(', ') : '';
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>CityCare — Patients</title>
+    <style>
+      :root {
+        --border: #1e2a44;
+        --bg: #0b1220;
+        --card: #0f1830;
+        --ink: #e7eefc;
+        --muted: #9cc0ff;
+        --accent: #2483ff;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font: 15px/1.6 system-ui, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        border-bottom: 2px solid var(--accent);
+        background: #0d1730;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+      header h1 {
+        margin: 0;
+        font-size: 18px;
+        color: var(--accent);
+      }
+      /* --- Navbar --- */
+.nav{
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.nav a{
+  color:#cfe0ff;
+  text-decoration:none;
+  margin:0 4px;
+  padding:4px 8px;
+  border-radius:8px;
+}
+.nav a.active,
+.nav a:hover{
+  background:#142243;
 }
 
-function setVal(id, v){
-  const el = qs(id);
-  if(el) el.value = (v==null ? '' : v);
+/* --- Login Row (force horizontal) --- */
+header .row{
+  display:flex;
+  flex-wrap:nowrap !important;
+  align-items:center;
+  gap:6px;
 }
+header input,
+header button{
+  padding:6px 8px;
+  border:1px solid #24345f;
+  border-radius:8px;
+  background:#0c1430;
+  color:var(--ink);
+  font-size:13px;
+}
+header button{
+  cursor:pointer;
+  background:var(--accent);
+  border:none;
+  color:white;
+}
+      .main {
+        max-width: 1100px;
+        margin: 16px auto;
+        padding: 0 16px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 14px;
+      }
+      h2,
+      h3 {
+        color: var(--accent);
+        margin: 6px 0;
+      }
+      .grid {
+        display: grid;
+        gap: 12px;
+      }
+      .cols-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      @media (max-width: 900px) {
+        .cols-2 {
+          grid-template-columns: 1fr;
+        }
+      }
+      label {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      input,
+      select,
+      textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #24345f;
+        border-radius: 10px;
+        background: #0c1430;
+        color: var(--ink);
+      }
+      textarea {
+        min-height: 70px;
+        resize: vertical;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .btn {
+        cursor: pointer;
+        background: var(--accent);
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        color: #fff;
+      }
+      .btn.secondary {
+        background: #24345f;
+      }
+      .small {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .badge {
+        padding: 2px 8px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #142243;
+        color: #bcd0ff;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🏥 CityCare — Indore</h1>
+      <nav class="nav">
+        <a class="active" href="index.html">Home</a>
+        <a href="map.html">Map</a>
+        <a href="patients.html">Patients</a>
+        <a href="schedule.html">Scheduling</a>
+        <a href="sharing.html">Data Sharing</a>
+        <a href="alerts.html">Alerts</a>
+        <a href="monitor.html">Monitor</a>
+      </nav>
+      <div class="row">
+        <input id="user_id" placeholder="User (USR_PAT_001)" /><input
+          id="pin"
+          placeholder="PIN"
+        /><button id="btn_login">Login</button>
+      </div>
+    </header>
 
-qs('btn_save').onclick = async ()=>{
-  // auto-calc BMI if left blank and height/weight present
-  let h = parseFloat(qs('height_cm').value || "0");
-  let w = parseFloat(qs('weight_kg').value || "0");
-  let bmi = qs('bmi').value.trim();
-  if(!bmi && h>0 && w>0){
-    const hm = h/100.0;
-    bmi = (w/(hm*hm)).toFixed(1);
-    qs('bmi').value = bmi;
-  }
+    <div class="main">
+      <!-- Login -->
+      <div class="card">
+        <h2>Patient Login</h2>
+        <p class="small">
+          Enter your <b>User ID</b> and <b>PIN</b>. If your doctor registered
+          you (ID+PIN), you can now complete your dashboard.
+        </p>
+        <div class="row">
+          <input
+            id="user_id"
+            placeholder="Patient User ID (e.g., PAT_AB12CD)"
+            style="min-width: 260px"
+          />
+          <input
+            id="pin"
+            placeholder="PIN (4–8 digits)"
+            style="min-width: 180px"
+          />
+          <button id="btn_login" class="btn">Login</button>
+          <span id="login_status" class="badge">Not logged in</span>
+        </div>
+      </div>
 
-  const payload = {
-    user_id: SESSION.user_id,
-    pin: SESSION.pin,
-    name: qs('name').value.trim() || null,
-    age: qs('age').value ? Number(qs('age').value) : null,
-    gender: qs('gender').value || null,
-    height_cm: qs('height_cm').value ? Number(qs('height_cm').value) : null,
-    weight_kg: qs('weight_kg').value ? Number(qs('weight_kg').value) : null,
-    bmi: qs('bmi').value ? Number(qs('bmi').value) : null,
-    phone: qs('phone').value.trim() || null,
-    email: qs('email').value.trim() || null,
-    emergency_contact: qs('emergency_contact').value.trim() || null,
-    conditions: qs('conditions').value.trim() || null,
-    allergies: qs('allergies').value.trim() || null,
-    meds: qs('meds').value.trim() || null,
-    assigned_doctor_id: qs('assigned_doctor_id').value.trim() || null,
-    facility_id: qs('facility_id').value.trim() || null,
-    consent: qs('consent').value || "none",
-    share_with: qs('share_with').value
-                  ? qs('share_with').value.split(',').map(s=>s.trim()).filter(Boolean)
-                  : []
-  };
+      <!-- Dashboard form -->
+      <div id="dash_card" class="card" style="display: none">
+        <h2>Patient Dashboard</h2>
+        <p class="small">
+          Fill your profile and medical details. Click <b>Save</b> to update the
+          main database.
+        </p>
 
-  try{
-    const r = await fetch(`${API}/patients/update`,{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(payload)
-    });
-    if(!r.ok){
-      const t = await r.text();
-      alert("Save failed: " + t);
-      return;
-    }
-    const resp = await r.json();
-    qs('save_status').textContent = "Saved at " + new Date().toLocaleTimeString();
-    alert("Profile saved.");
-  }catch(e){
-    alert("Backend not reachable.");
-  }
-};
-</script>
-</body>
+        <div class="grid cols-2">
+          <div>
+            <label>Name</label>
+            <input id="name" />
+          </div>
+          <div>
+            <label>Gender</label>
+            <select id="gender">
+              <option value="">—</option>
+              <option>Female</option>
+              <option>Male</option>
+              <option>Other</option>
+              <option>Prefer not to say</option>
+            </select>
+          </div>
+          <div>
+            <label>Age</label>
+            <input id="age" type="number" min="0" />
+          </div>
+          <div>
+            <label>Height (cm)</label>
+            <input id="height_cm" type="number" step="0.1" min="0" />
+          </div>
+          <div>
+            <label>Weight (kg)</label>
+            <input id="weight_kg" type="number" step="0.1" min="0" />
+          </div>
+          <div>
+            <label>BMI</label>
+            <input
+              id="bmi"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="auto-calc if left blank"
+            />
+          </div>
+
+          <div>
+            <label>Phone</label>
+            <input id="phone" />
+          </div>
+          <div>
+            <label>Email</label>
+            <input id="email" />
+          </div>
+          <div>
+            <label>Emergency Contact</label>
+            <input id="emergency_contact" placeholder="Name / Phone" />
+          </div>
+          <div>
+            <label>Assigned Doctor ID</label>
+            <input id="assigned_doctor_id" placeholder="DOC_001" />
+          </div>
+          <div>
+            <label>Facility ID</label>
+            <input id="facility_id" placeholder="IND_HSP_001" />
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top: 10px">
+          <div>
+            <label>Medical Conditions</label>
+            <textarea
+              id="conditions"
+              placeholder="e.g., Diabetes, Hypertension"
+            ></textarea>
+          </div>
+          <div>
+            <label>Allergies</label>
+            <textarea
+              id="allergies"
+              placeholder="e.g., Penicillin, Peanuts"
+            ></textarea>
+          </div>
+          <div>
+            <label>Current Medications</label>
+            <textarea
+              id="meds"
+              placeholder="e.g., Metformin 500 mg daily"
+            ></textarea>
+          </div>
+        </div>
+
+        <hr />
+
+        <h3>Data Sharing</h3>
+        <p class="small">Choose who can see your data:</p>
+        <div class="grid cols-2">
+          <div>
+            <label>Consent</label>
+            <select id="consent">
+              <option value="none">None (only you)</option>
+              <option value="all">All users</option>
+              <option value="doctors">All doctors</option>
+              <option value="custom">Custom list</option>
+            </select>
+          </div>
+          <div>
+            <label>Share With (when Custom). Comma-separated User IDs</label>
+            <input id="share_with" placeholder="DOC_001, PHM_007" />
+          </div>
+        </div>
+
+        <div class="row" style="justify-content: flex-end; margin-top: 10px">
+          <button id="btn_save" class="btn">Save</button>
+          <span id="save_status" class="badge">—</span>
+        </div>
+      </div>
+    </div>
+
+    <footer
+      class="small"
+      style="text-align: center; margin: 24px 0; color: #9cc0ff"
+    >
+      © 2025 CityCare Project — Patients Module
+    </footer>
+
+    <script>
+      const API = "http://127.0.0.1:8000";
+      const qs = (id) => document.getElementById(id);
+
+      // Navbar active
+      (function () {
+        const file = location.pathname.split("/").pop() || "patients.html";
+        document.querySelectorAll("#topnav a").forEach((a) => {
+          if (a.dataset?.page === file) a.classList.add("active");
+          else a.classList.remove("active");
+        });
+      })();
+
+      let SESSION = { user_id: null, pin: null };
+
+      qs("btn_login").onclick = async () => {
+        const uid = qs("user_id").value.trim();
+        const pin = qs("pin").value.trim();
+        if (!uid || !pin) {
+          alert("Enter User ID and PIN");
+          return;
+        }
+        try {
+          // Load patient record (must exist from doctor registration)
+          const r = await fetch(`${API}/patients/${encodeURIComponent(uid)}`);
+          if (!r.ok) {
+            alert(
+              "No such patient. Ask your doctor to register your ID first."
+            );
+            return;
+          }
+          const patient = await r.json();
+          // soft PIN check on update; here we just stage session
+          SESSION = { user_id: uid, pin: pin };
+          qs("login_status").textContent = `Logged in: ${uid}`;
+          qs("dash_card").style.display = "";
+          fillForm(patient);
+        } catch (e) {
+          alert("Backend not reachable.");
+        }
+      };
+
+      function fillForm(p) {
+        setVal("name", p.name);
+        setVal("gender", p.gender);
+        setVal("age", p.age);
+        setVal("height_cm", p.height_cm);
+        setVal("weight_kg", p.weight_kg);
+        setVal("bmi", p.bmi);
+        setVal("phone", p.phone);
+        setVal("email", p.email);
+        setVal("emergency_contact", p.emergency_contact);
+        setVal("assigned_doctor_id", p.assigned_doctor_id);
+        setVal("facility_id", p.facility_id);
+        setVal("conditions", p.conditions);
+        setVal("allergies", p.allergies);
+        setVal("meds", p.meds);
+        setVal("consent", p.consent || "none");
+        qs("share_with").value =
+          p.share_with && p.share_with.length ? p.share_with.join(", ") : "";
+      }
+
+      function setVal(id, v) {
+        const el = qs(id);
+        if (el) el.value = v == null ? "" : v;
+      }
+
+      qs("btn_save").onclick = async () => {
+        // auto-calc BMI if left blank and height/weight present
+        let h = parseFloat(qs("height_cm").value || "0");
+        let w = parseFloat(qs("weight_kg").value || "0");
+        let bmi = qs("bmi").value.trim();
+        if (!bmi && h > 0 && w > 0) {
+          const hm = h / 100.0;
+          bmi = (w / (hm * hm)).toFixed(1);
+          qs("bmi").value = bmi;
+        }
+
+        const payload = {
+          user_id: SESSION.user_id,
+          pin: SESSION.pin,
+          name: qs("name").value.trim() || null,
+          age: qs("age").value ? Number(qs("age").value) : null,
+          gender: qs("gender").value || null,
+          height_cm: qs("height_cm").value
+            ? Number(qs("height_cm").value)
+            : null,
+          weight_kg: qs("weight_kg").value
+            ? Number(qs("weight_kg").value)
+            : null,
+          bmi: qs("bmi").value ? Number(qs("bmi").value) : null,
+          phone: qs("phone").value.trim() || null,
+          email: qs("email").value.trim() || null,
+          emergency_contact: qs("emergency_contact").value.trim() || null,
+          conditions: qs("conditions").value.trim() || null,
+          allergies: qs("allergies").value.trim() || null,
+          meds: qs("meds").value.trim() || null,
+          assigned_doctor_id: qs("assigned_doctor_id").value.trim() || null,
+          facility_id: qs("facility_id").value.trim() || null,
+          consent: qs("consent").value || "none",
+          share_with: qs("share_with").value
+            ? qs("share_with")
+                .value.split(",")
+                .map((s) => s.trim())
+                .filter(Boolean)
+            : [],
+        };
+
+        try {
+          const r = await fetch(`${API}/patients/update`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!r.ok) {
+            const t = await r.text();
+            alert("Save failed: " + t);
+            return;
+          }
+          const resp = await r.json();
+          qs("save_status").textContent =
+            "Saved at " + new Date().toLocaleTimeString();
+          alert("Profile saved.");
+        } catch (e) {
+          alert("Backend not reachable.");
+        }
+      };
+    </script>
+  </body>
 </html>
